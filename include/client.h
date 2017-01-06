@@ -1,14 +1,17 @@
 /* Copyright 2016 Google Inc. All Rights Reserved.
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-    http://www.apache.org/licenses/LICENSE-2.0
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-==============================================================================*/
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #ifndef MIXERCLIENT_CLIENT_H
 #define MIXERCLIENT_CLIENT_H
@@ -17,7 +20,7 @@ limitations under the License.
 #include <memory>
 #include <string>
 
-#include "google/api/servicecontrol/v1/service_controller.pb.h"
+#include "mixer/api/v1/service.pb.h"
 #include "google/protobuf/stubs/status.h"
 #include "options.h"
 
@@ -26,20 +29,20 @@ namespace mixer_client {
 
 // Defines a function prototype used when an asynchronous transport call
 // is completed.
-using TransportDoneFunc =
+using DoneFunc =
     std::function<void(const ::google::protobuf::util::Status&)>;
 
 // Defines a function prototype to make an asynchronous Check call to
 // the mixer server.
 using TransportCheckFunc = std::function<void(
     const ::istio::mixer::v1::CheckRequest& request,
-    ::istio::mixer::v1::CheckResponse* response, TransportDoneFunc on_done)>;
+    ::istio::mixer::v1::CheckResponse* response, DoneFunc on_done)>;
 
 // Defines a function prototype to make an asynchronous Report call to
 // the mixer server.
 using TransportReportFunc = std::function<void(
     const ::istio::mixer::v1::ReportRequest& request,
-    ::istio::mixer::v1::ReportResponse* response, TransportDoneFunc on_done)>;
+    ::istio::mixer::v1::ReportResponse* response, DoneFunc on_done)>;
 
 // Defines the options to create an instance of MixerClient interface.
 struct MixerClientOptions {
@@ -66,9 +69,6 @@ struct MixerClientOptions {
 
 class MixerClient {
  public:
-  using DoneCallback =
-      std::function<void(const ::google::protobuf::util::Status&)>;
-
   // Destructor
   virtual ~MixerClient() {}
 
@@ -77,22 +77,18 @@ class MixerClient {
   // It allows caller to pass in a per_request transport function.
   virtual void Check(const ::istio::mixer::v1::CheckRequest& check_request,
                      ::istio::mixer::v1::CheckResponse* check_response,
-                     DoneCallback on_check_done,
-                     TransportCheckFunc check_transport) = 0;
+                     DoneFunc on_check_done) = 0;
 
   // A report call with provided per_request transport function.
   // Only some special platforms may need to use this function.
   // It allows callers to pass in a per_request transport function.
   virtual void Report(const ::istio::mixer::v1::ReportResponse& report_request,
                       ::istio::mixer::v1::ReportResponse* report_response,
-                      DoneCallback on_report_done,
-                      TransportReportFunc report_transport) = 0;
+                      DoneFunc on_report_done) = 0;
 };
 
 // Creates a MixerClient object.
-std::unique_ptr<MixerClient> CreateMixerClient(
-    const std::string& service_name, const std::string& service_config_id,
-    MixerClientOptions& options);
+std::unique_ptr<MixerClient> CreateMixerClient(MixerClientOptions& options);
 
 }  // namespace mixer_client
 }  // namespace google
