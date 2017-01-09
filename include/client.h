@@ -24,7 +24,7 @@
 #include "mixer/api/v1/service.pb.h"
 #include "options.h"
 
-namespace google {
+namespace istio {
 namespace mixer_client {
 
 // Defines a function prototype used when an asynchronous transport call
@@ -111,6 +111,6 @@ class MixerClient {
 std::unique_ptr<MixerClient> CreateMixerClient(MixerClientOptions& options);
 
 }  // namespace mixer_client
-}  // namespace google
+}  // namespace istio
 
 #endif  // MIXERCLIENT_CLIENT_H

@@ -18,7 +18,7 @@
 
 #include <memory>
 
-namespace google {
+namespace istio {
 namespace mixer_client {
 
 // Options controlling check behavior.
@@ -117,6 +117,6 @@ struct QuotaOptions {
 };
 
 }  // namespace mixer_client
-}  // namespace google
+}  // namespace istio
 
 #endif  // MIXERCLIENT_OPTIONS_H
