@@ -28,6 +28,6 @@ cc_proto_library(
     visibility = ["//visibility:public"],
     deps = [
         "//external:cc_wkt_protos",
-        "//external:servicecontrol",
+        "//external:service_config",
     ],
 )

@@ -52,18 +52,6 @@ class MixerClientImpl : public MixerClient {
                      DoneFunc on_quota_done);
 
  private:
-  // A flush callback for check.
-  void CheckFlushCallback(
-      const ::istio::mixer::v1::CheckRequest &check_request);
-
-  // A flush callback for report.
-  void ReportFlushCallback(
-      const ::istio::mixer::v1::ReportRequest &report_request);
-
-  // A flush callback for quota.
-  void QuotaFlushCallback(
-      const ::istio::mixer::v1::QuotaRequest &quota_request);
-
   // The check transport function.
   TransportCheckFunc check_transport_;
   // The report transport function.

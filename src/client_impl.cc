@@ -44,15 +44,7 @@ void MixerClientImpl::Check(const CheckRequest &check_request,
     return;
   }
 
-  check_transport_(
-      check_request, check_response, [on_check_done](Status status) {
-        if (!status.ok()) {
-          GOOGLE_LOG(ERROR)
-              << "Failed in Check call: " << status.error_message();
-        } else {
-          on_check_done(status);
-        }
-      });
+  check_transport_(check_request, check_response, on_check_done);
 }
 
 void MixerClientImpl::Report(const ReportRequest &report_request,

@@ -59,18 +59,13 @@ new_git_repository(
 )
 
 bind(
-    name = "servicecontrol",
-    actual = "@googleapis_git//:servicecontrol",
-)
-
-bind(
-    name = "servicecontrol_genproto",
-    actual = "@googleapis_git//:servicecontrol_genproto",
-)
-
-bind(
     name = "service_config",
     actual = "@googleapis_git//:service_config",
+)
+
+bind(
+    name = "service_config_genproto",
+    actual = "@googleapis_git//:service_config_genproto",
 )
 
 new_git_repository(
