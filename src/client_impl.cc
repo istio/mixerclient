@@ -28,45 +28,42 @@ using ::google::protobuf::util::error::Code;
 namespace istio {
 namespace mixer_client {
 
-MixerClientImpl::MixerClientImpl(MixerClientOptions &options) {
-  check_transport_ = options.check_transport;
-  report_transport_ = options.report_transport;
-  quota_transport_ = options.quota_transport;
-}
+MixerClientImpl::MixerClientImpl(MixerClientOptions &options)
+    : options_(options) {}
 
 MixerClientImpl::~MixerClientImpl() {}
 
 void MixerClientImpl::Check(const CheckRequest &check_request,
                             CheckResponse *check_response,
                             DoneFunc on_check_done) {
-  if (check_transport_ == NULL) {
+  if (options_.check_transport == NULL) {
     on_check_done(Status(Code::INVALID_ARGUMENT, "transport is NULL."));
     return;
   }
 
-  check_transport_(check_request, check_response, on_check_done);
+  options_.check_transport(check_request, check_response, on_check_done);
 }
 
 void MixerClientImpl::Report(const ReportRequest &report_request,
                              ReportResponse *report_response,
                              DoneFunc on_report_done) {
-  if (report_transport_ == NULL) {
+  if (options_.report_transport == NULL) {
     on_report_done(Status(Code::INVALID_ARGUMENT, "transport is NULL."));
     return;
   }
 
-  report_transport_(report_request, report_response, on_report_done);
+  options_.report_transport(report_request, report_response, on_report_done);
 }
 
 void MixerClientImpl::Quota(const QuotaRequest &quota_request,
                             QuotaResponse *quota_response,
                             DoneFunc on_quota_done) {
-  if (quota_transport_ == NULL) {
+  if (options_.quota_transport == NULL) {
     on_quota_done(Status(Code::INVALID_ARGUMENT, "transport is NULL."));
     return;
   }
 
-  quota_transport_(quota_request, quota_response, on_quota_done);
+  options_.quota_transport(quota_request, quota_response, on_quota_done);
 }
 
 // Creates a MixerClient object.

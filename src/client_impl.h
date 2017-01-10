@@ -52,12 +52,7 @@ class MixerClientImpl : public MixerClient {
                      DoneFunc on_quota_done);
 
  private:
-  // The check transport function.
-  TransportCheckFunc check_transport_;
-  // The report transport function.
-  TransportReportFunc report_transport_;
-  // The quota transport function.
-  TransportQuotaFunc quota_transport_;
+  const MixerClientOptions &options_;
 
   GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(MixerClientImpl);
 };
