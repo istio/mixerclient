@@ -18,11 +18,10 @@ install:
   - export JAVA_HOME=/usr/lib/jvm/java-8-oracle
   - export CC=gcc-4.8
   - export CXX=g++-4.8
-  - wget 'https://github.com/bazelbuild/bazel/releases/download/0.4.1/bazel-0.4.1-installer-linux-x86_64.sh' -O ./bazel-installer.sh
+  - wget 'https://github.com/bazelbuild/bazel/releases/download/0.4.3/bazel-0.4.3-installer-linux-x86_64.sh' -O ./bazel-installer.sh
   - chmod +x ./bazel-installer.sh
   - ./bazel-installer.sh  --user
 
 script:
-  - script/setup
   - bazel test :all --test_output=errors
   
