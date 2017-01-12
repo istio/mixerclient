@@ -116,9 +116,11 @@ class MockCheckTransport {
   MOCK_METHOD3(Check, void(const CheckRequest &, CheckResponse *, DoneFunc));
 
   TransportCheckFunc GetFunc() {
-    return
-        [this](const CheckRequest &request, CheckResponse *response,
-               DoneFunc on_done) { this->Check(request, response, on_done); };
+    return [this](StreamID id, const CheckRequest &request,
+                  CheckResponse *response, DoneFunc on_done) -> StreamStatus {
+      this->Check(request, response, on_done);
+      return STREAM_OK;
+    };
   }
 
   MockCheckTransport() : check_response_(NULL) {}
@@ -150,9 +152,11 @@ class MockReportTransport {
   MOCK_METHOD3(Report, void(const ReportRequest &, ReportResponse *, DoneFunc));
 
   TransportReportFunc GetFunc() {
-    return
-        [this](const ReportRequest &request, ReportResponse *response,
-               DoneFunc on_done) { this->Report(request, response, on_done); };
+    return [this](StreamID id, const ReportRequest &request,
+                  ReportResponse *response, DoneFunc on_done) -> StreamStatus {
+      this->Report(request, response, on_done);
+      return STREAM_OK;
+    };
   }
 
   MockReportTransport() : report_response_(NULL) {}
@@ -185,9 +189,11 @@ class MockQuotaTransport {
   MOCK_METHOD3(Quota, void(const QuotaRequest &, QuotaResponse *, DoneFunc));
 
   TransportQuotaFunc GetFunc() {
-    return
-        [this](const QuotaRequest &request, QuotaResponse *response,
-               DoneFunc on_done) { this->Quota(request, response, on_done); };
+    return [this](StreamID id, const QuotaRequest &request,
+                  QuotaResponse *response, DoneFunc on_done) -> StreamStatus {
+      this->Quota(request, response, on_done);
+      return STREAM_OK;
+    };
   }
 
   MockQuotaTransport() : quota_response_(NULL) {}

@@ -41,7 +41,7 @@ void MixerClientImpl::Check(const CheckRequest &check_request,
     return;
   }
 
-  options_.check_transport(check_request, check_response, on_check_done);
+  options_.check_transport(0, check_request, check_response, on_check_done);
 }
 
 void MixerClientImpl::Report(const ReportRequest &report_request,
@@ -52,7 +52,7 @@ void MixerClientImpl::Report(const ReportRequest &report_request,
     return;
   }
 
-  options_.report_transport(report_request, report_response, on_report_done);
+  options_.report_transport(0, report_request, report_response, on_report_done);
 }
 
 void MixerClientImpl::Quota(const QuotaRequest &quota_request,
@@ -63,7 +63,7 @@ void MixerClientImpl::Quota(const QuotaRequest &quota_request,
     return;
   }
 
-  options_.quota_transport(quota_request, quota_response, on_quota_done);
+  options_.quota_transport(0, quota_request, quota_response, on_quota_done);
 }
 
 // Creates a MixerClient object.

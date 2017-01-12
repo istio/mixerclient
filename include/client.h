@@ -31,22 +31,68 @@ namespace mixer_client {
 // is completed.
 using DoneFunc = std::function<void(const ::google::protobuf::util::Status&)>;
 
+// Define a simple streaming transport interface to support ping-pong requests.
+// Transport layer associates a stream_id to a stream, but only exposes
+// stream_id to the mixer client.
+// Mixer client needs to new a stream and use it to send request and receive
+// response. When done, close it.
+// The stream can be reset by the peer. Transport layer need a way to notify
+// Mixer client for such change. In this design, each call may return
+// STREAM_NOT_EXIST if it is reset by the peer.
+//
+typedef enum {
+  STREAM_OK = 0,
+  STREAM_NOT_EXIST,
+} StreamStatus;
+
+// Transport Stream ID type.
+typedef int StreamID;
+
+// A function to create a new transport stream
+using TransportStreamNewFunc = std::function<StreamID()>;
+// A function to close a transport stream
+using TransportStreamCloseFunc = std::function<void(StreamID)>;
+
+// // create a new stream. The actual stream will not be created until
+// // the first use.
+// stream_id = StreamNew();
+//
+// while (request : request_list) {
+//   StreamStatus ret = Call(stream_id, request, response, on_done);
+//   if (ret == STREAM_NOT_EXIST) {
+//      // The stream is reset by peer. create a new stream
+//      stream_id = StreamNew();
+//      // Re-generate request with new stream, and call again.
+//      ret = Call(stream_id, request, response, on_done);
+//      // Since the actual stream is only created on the first use,
+//      // this should NOT happen.
+//      ASSERT(ret != STREAM_NOT_EXIST);
+//   }
+// }
+//
+// // Close the stream.
+// StreamClose(stream_id);
+//
+// With this design, the transport layer need to take care of pairing
+// between request and response.  The request_index field can be used
+// for pairing.
+
 // Defines a function prototype to make an asynchronous Check call to
 // the mixer server.
-using TransportCheckFunc = std::function<void(
-    const ::istio::mixer::v1::CheckRequest& request,
+using TransportCheckFunc = std::function<StreamStatus(
+    StreamID id, const ::istio::mixer::v1::CheckRequest& request,
     ::istio::mixer::v1::CheckResponse* response, DoneFunc on_done)>;
 
 // Defines a function prototype to make an asynchronous Report call to
 // the mixer server.
-using TransportReportFunc = std::function<void(
-    const ::istio::mixer::v1::ReportRequest& request,
+using TransportReportFunc = std::function<StreamStatus(
+    StreamID id, const ::istio::mixer::v1::ReportRequest& request,
     ::istio::mixer::v1::ReportResponse* response, DoneFunc on_done)>;
 
 // Defines a function prototype to make an asynchronous Quota call to
 // the mixer server.
-using TransportQuotaFunc = std::function<void(
-    const ::istio::mixer::v1::QuotaRequest& request,
+using TransportQuotaFunc = std::function<StreamStatus(
+    StreamID id, const ::istio::mixer::v1::QuotaRequest& request,
     ::istio::mixer::v1::QuotaResponse* response, DoneFunc on_done)>;
 
 // Defines the options to create an instance of MixerClient interface.
