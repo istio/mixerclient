@@ -31,21 +31,57 @@ namespace mixer_client {
 // is completed.
 using DoneFunc = std::function<void(const ::google::protobuf::util::Status&)>;
 
+// Define transport context status
+typedef enum {
+  CTX_OK = 0,
+  CTX_NOT_EXIST,
+} CtxStatus;
+
+// Transport Context ID type.
+typedef int CtxID;
+
+// A function to create a new transport context
+using TransportCtxNewFunc = std::function<CtxID()>;
+// A function to close a transport context
+using TransportCtxCloseFunc = std::function<void(CtxID)>;
+
+// Use context to support transport layer streaming.
+// Transport will use same stream if ctx_id is the same.
+// Caller can do delta update with same ctx_id.
+//
+// // create a new context
+// ctx_id = CtxNew();
+//
+// while (request : request_list) {
+//   CtxStatus ret = Check(ctx_id, request, response, on_done);
+//   if (ret == CTX_NOT_EXIST) {
+//      // The stream is reset by peer. create a new context
+//      ctx_id = CtxNew();
+//      // Re-generate request with new context, and call again
+//      ret = Check(ctx_id, request, response, on_done);
+//      // should NOT happen for a newly created context.
+//      ASSERT(ret != CTX_NOT_EXIST);
+//   }
+// }
+//
+// // Close the context.
+// CtxClose(ctx_id);
+
 // Defines a function prototype to make an asynchronous Check call to
 // the mixer server.
-using TransportCheckFunc = std::function<void(
+using TransportCheckFunc = std::function<CtxStatus(CtxID id,
     const ::istio::mixer::v1::CheckRequest& request,
     ::istio::mixer::v1::CheckResponse* response, DoneFunc on_done)>;
 
 // Defines a function prototype to make an asynchronous Report call to
 // the mixer server.
-using TransportReportFunc = std::function<void(
+using TransportReportFunc = std::function<CtxStatus(CtxID id,
     const ::istio::mixer::v1::ReportRequest& request,
     ::istio::mixer::v1::ReportResponse* response, DoneFunc on_done)>;
 
 // Defines a function prototype to make an asynchronous Quota call to
 // the mixer server.
-using TransportQuotaFunc = std::function<void(
+using TransportQuotaFunc = std::function<CtxStatus(CtxID id,
     const ::istio::mixer::v1::QuotaRequest& request,
     ::istio::mixer::v1::QuotaResponse* response, DoneFunc on_done)>;
 
