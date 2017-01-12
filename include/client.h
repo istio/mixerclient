@@ -69,20 +69,20 @@ using TransportCtxCloseFunc = std::function<void(CtxID)>;
 
 // Defines a function prototype to make an asynchronous Check call to
 // the mixer server.
-using TransportCheckFunc = std::function<CtxStatus(CtxID id,
-    const ::istio::mixer::v1::CheckRequest& request,
+using TransportCheckFunc = std::function<CtxStatus(
+    CtxID id, const ::istio::mixer::v1::CheckRequest& request,
     ::istio::mixer::v1::CheckResponse* response, DoneFunc on_done)>;
 
 // Defines a function prototype to make an asynchronous Report call to
 // the mixer server.
-using TransportReportFunc = std::function<CtxStatus(CtxID id,
-    const ::istio::mixer::v1::ReportRequest& request,
+using TransportReportFunc = std::function<CtxStatus(
+    CtxID id, const ::istio::mixer::v1::ReportRequest& request,
     ::istio::mixer::v1::ReportResponse* response, DoneFunc on_done)>;
 
 // Defines a function prototype to make an asynchronous Quota call to
 // the mixer server.
-using TransportQuotaFunc = std::function<CtxStatus(CtxID id,
-    const ::istio::mixer::v1::QuotaRequest& request,
+using TransportQuotaFunc = std::function<CtxStatus(
+    CtxID id, const ::istio::mixer::v1::QuotaRequest& request,
     ::istio::mixer::v1::QuotaResponse* response, DoneFunc on_done)>;
 
 // Defines the options to create an instance of MixerClient interface.
