@@ -31,10 +31,14 @@ namespace mixer_client {
 // is completed.
 using DoneFunc = std::function<void(const ::google::protobuf::util::Status&)>;
 
-// Use stream ID to define a simple stream interface to support
-// simple ping-pong requests.
-// Callers will New a stream and use it to send request and receive
-// response.
+// Define a simple streaming transport interface to support ping-pong requests.
+// Transport layer associates a stream_id to a stream, but only exposes
+// stream_id to the mixer client.
+// Mixer client needs to new a stream and use it to send request and receive
+// response. When done, close it.
+// The stream can be reset by the peer. Transport layer need a way to notify
+// Mixer client for such change. In this design, each call may return
+// STREAM_NOT_EXIST if it is reset by the peer.
 //
 typedef enum {
   STREAM_OK = 0,
@@ -49,7 +53,7 @@ using TransportStreamNewFunc = std::function<StreamID()>;
 // A function to close a transport stream
 using TransportStreamCloseFunc = std::function<void(StreamID)>;
 
-// // create a new stream. The transport stream will not be created until
+// // create a new stream. The actual stream will not be created until
 // // the first use.
 // stream_id = StreamNew();
 //
@@ -58,10 +62,10 @@ using TransportStreamCloseFunc = std::function<void(StreamID)>;
 //   if (ret == STREAM_NOT_EXIST) {
 //      // The stream is reset by peer. create a new stream
 //      stream_id = StreamNew();
-//      // Re-generate request with new stream, and call again
-//      ret = Check(stream_id, request, response, on_done);
-//      // Since the transport stream is only created on the first use,
-//      // this should NOT happen for a newly created stream.
+//      // Re-generate request with new stream, and call again.
+//      ret = Call(stream_id, request, response, on_done);
+//      // Since the actual stream is only created on the first use,
+//      // this should NOT happen.
 //      ASSERT(ret != STREAM_NOT_EXIST);
 //   }
 // }
@@ -69,10 +73,9 @@ using TransportStreamCloseFunc = std::function<void(StreamID)>;
 // // Close the stream.
 // StreamClose(stream_id);
 //
-// The transport layer need to take care of pairing between
-// request and response.  All request and response types have request_index
-// which can be used for pairing.
-//
+// With this design, the transport layer need to take care of pairing
+// between request and response.  The request_index field can be used
+// for pairing.
 
 // Defines a function prototype to make an asynchronous Check call to
 // the mixer server.
