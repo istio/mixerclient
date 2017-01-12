@@ -31,58 +31,65 @@ namespace mixer_client {
 // is completed.
 using DoneFunc = std::function<void(const ::google::protobuf::util::Status&)>;
 
-// Define transport context status
-typedef enum {
-  CTX_OK = 0,
-  CTX_NOT_EXIST,
-} CtxStatus;
-
-// Transport Context ID type.
-typedef int CtxID;
-
-// A function to create a new transport context
-using TransportCtxNewFunc = std::function<CtxID()>;
-// A function to close a transport context
-using TransportCtxCloseFunc = std::function<void(CtxID)>;
-
-// Use context to support transport layer streaming.
-// Transport will use same stream if ctx_id is the same.
-// Caller can do delta update with same ctx_id.
+// Use stream ID to define a simple stream interface to support
+// simple ping-pong requests.
+// Callers will New a stream and use it to send request and receive
+// response.
 //
-// // create a new context
-// ctx_id = CtxNew();
+typedef enum {
+  STREAM_OK = 0,
+  STREAM_NOT_EXIST,
+} StreamStatus;
+
+// Transport Stream ID type.
+typedef int StreamID;
+
+// A function to create a new transport stream
+using TransportStreamNewFunc = std::function<StreamID()>;
+// A function to close a transport stream
+using TransportStreamCloseFunc = std::function<void(StreamID)>;
+
+// // create a new stream. The transport stream will not be created until
+// // the first use.
+// stream_id = StreamNew();
 //
 // while (request : request_list) {
-//   CtxStatus ret = Check(ctx_id, request, response, on_done);
-//   if (ret == CTX_NOT_EXIST) {
-//      // The stream is reset by peer. create a new context
-//      ctx_id = CtxNew();
-//      // Re-generate request with new context, and call again
-//      ret = Check(ctx_id, request, response, on_done);
-//      // should NOT happen for a newly created context.
-//      ASSERT(ret != CTX_NOT_EXIST);
+//   StreamStatus ret = Call(stream_id, request, response, on_done);
+//   if (ret == STREAM_NOT_EXIST) {
+//      // The stream is reset by peer. create a new stream
+//      stream_id = StreamNew();
+//      // Re-generate request with new stream, and call again
+//      ret = Check(stream_id, request, response, on_done);
+//      // Since the transport stream is only created on the first use,
+//      // this should NOT happen for a newly created stream.
+//      ASSERT(ret != STREAM_NOT_EXIST);
 //   }
 // }
 //
-// // Close the context.
-// CtxClose(ctx_id);
+// // Close the stream.
+// StreamClose(stream_id);
+//
+// The transport layer need to take care of pairing between
+// request and response.  All request and response types have request_index
+// which can be used for pairing.
+//
 
 // Defines a function prototype to make an asynchronous Check call to
 // the mixer server.
-using TransportCheckFunc = std::function<CtxStatus(
-    CtxID id, const ::istio::mixer::v1::CheckRequest& request,
+using TransportCheckFunc = std::function<StreamStatus(
+    StreamID id, const ::istio::mixer::v1::CheckRequest& request,
     ::istio::mixer::v1::CheckResponse* response, DoneFunc on_done)>;
 
 // Defines a function prototype to make an asynchronous Report call to
 // the mixer server.
-using TransportReportFunc = std::function<CtxStatus(
-    CtxID id, const ::istio::mixer::v1::ReportRequest& request,
+using TransportReportFunc = std::function<StreamStatus(
+    StreamID id, const ::istio::mixer::v1::ReportRequest& request,
     ::istio::mixer::v1::ReportResponse* response, DoneFunc on_done)>;
 
 // Defines a function prototype to make an asynchronous Quota call to
 // the mixer server.
-using TransportQuotaFunc = std::function<CtxStatus(
-    CtxID id, const ::istio::mixer::v1::QuotaRequest& request,
+using TransportQuotaFunc = std::function<StreamStatus(
+    StreamID id, const ::istio::mixer::v1::QuotaRequest& request,
     ::istio::mixer::v1::QuotaResponse* response, DoneFunc on_done)>;
 
 // Defines the options to create an instance of MixerClient interface.
