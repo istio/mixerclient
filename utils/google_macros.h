@@ -18,7 +18,7 @@
 
 #undef GOOGLE_DISALLOW_EVIL_CONSTRUCTORS
 #define GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(TypeName) \
-      TypeName(const TypeName&);                        \
-      void operator=(const TypeName&)
+  TypeName(const TypeName&);                        \
+  void operator=(const TypeName&)
 
 #endif  // MIXERCLIENT_UTILS_GOOGLE_MACROS_H_

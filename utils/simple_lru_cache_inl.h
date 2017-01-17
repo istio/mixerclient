@@ -66,7 +66,7 @@ const int64_t kSecToUsec = 1000000;
 
 // Define a simple cycle timer interface to encapsulate timer related code.
 // The concept is from CPU cycle. The cycle clock code from
-// https://github.com/google/benchmark/src/cycleclock.h can be used.
+// https://github.com/google/benchmark/blob/master/src/cycleclock.h can be used.
 // But that code only works for some platforms. To make code works for all
 // platforms, SimpleCycleTimer class uses a fake CPU cycle each taking a
 // microsecond. If needed, this timer class can be easily replaced by a
@@ -898,22 +898,22 @@ void SimpleLRUCacheBase<Key, Value, MapType, EQ>::DiscardIdle(
   int64_t last = 0;
 #endif
   while ((e != &head_) && (e->last_use_ < threshold)) {
-    // Sanity check: LRU list should be sorted by last_use_.  We could
-    // check the entire list, but that gives quadratic behavior.
-    //
-    // TSCs on different cores of multi-core machines sometime get slightly out
-    // of sync; compensate for this by allowing clock to go backwards by up to
-    // kAcceptableClockSynchronizationDriftCycles CPU cycles.
-    //
-    // A kernel bug (http://b/issue?id=777807) sometimes causes TSCs to become
-    // widely unsynchronized, in which case this CHECK will fail.  As a
-    // temporary work-around, running
-    //
-    //  $ sudo bash
-    //  # echo performance>/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
-    //  # /etc/init.d/cpufrequtils restart
-    //
-    // fixes the problem.
+// Sanity check: LRU list should be sorted by last_use_.  We could
+// check the entire list, but that gives quadratic behavior.
+//
+// TSCs on different cores of multi-core machines sometime get slightly out
+// of sync; compensate for this by allowing clock to go backwards by up to
+// kAcceptableClockSynchronizationDriftCycles CPU cycles.
+//
+// A kernel bug (http://b/issue?id=777807) sometimes causes TSCs to become
+// widely unsynchronized, in which case this CHECK will fail.  As a
+// temporary work-around, running
+//
+//  $ sudo bash
+//  # echo performance>/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+//  # /etc/init.d/cpufrequtils restart
+//
+// fixes the problem.
 #ifndef NDEBUG
     assert(last <= e->last_use_ + kAcceptableClockSynchronizationDriftCycles);
     last = e->last_use_;
