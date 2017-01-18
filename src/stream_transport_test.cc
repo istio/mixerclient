@@ -13,19 +13,13 @@
  * limitations under the License.
  */
 
-#include "include/client.h"
+#include "src/stream_transport.h"
 
 #include "gmock/gmock.h"
-#include "google/protobuf/text_format.h"
 #include "google/protobuf/util/message_differencer.h"
 #include "gtest/gtest.h"
 using ::istio::mixer::v1::CheckRequest;
 using ::istio::mixer::v1::CheckResponse;
-using ::istio::mixer::v1::ReportRequest;
-using ::istio::mixer::v1::ReportResponse;
-using ::istio::mixer::v1::QuotaRequest;
-using ::istio::mixer::v1::QuotaResponse;
-using ::google::protobuf::TextFormat;
 using ::google::protobuf::util::MessageDifferencer;
 using ::google::protobuf::util::Status;
 using ::google::protobuf::util::error::Code;
@@ -53,24 +47,15 @@ class MockWriter : public WriteInterface<T> {
   MOCK_METHOD0_T(is_write_closed, bool());
 };
 
-class MixerClientImplTest : public ::testing::Test {
+class TransportImplTest : public ::testing::Test {
  public:
-  void SetUp() {
-    MixerClientOptions options(
-        CheckOptions(1 /*entries */, 500 /* refresh_interval_ms */,
-                     1000 /* expiration_ms */),
-        ReportOptions(1 /* entries */, 500 /*flush_interval_ms*/),
-        QuotaOptions(1 /* entries */, 500 /*flush_interval_ms*/,
-                     1000 /* expiration_ms */));
-    options.transport = &mock_transport_;
-    client_ = CreateMixerClient(options);
-  }
+  TransportImplTest() : stream_(&mock_transport_) {}
 
   MockTransport mock_transport_;
-  std::unique_ptr<MixerClient> client_;
+  StreamTransport<CheckRequest, CheckResponse> stream_;
 };
 
-TEST_F(MixerClientImplTest, TestSingleCheck) {
+TEST_F(TransportImplTest, TestSingleCheck) {
   MockWriter<CheckRequest>* writer = new MockWriter<CheckRequest>;
   CheckReaderRawPtr reader;
 
@@ -93,8 +78,8 @@ TEST_F(MixerClientImplTest, TestSingleCheck) {
 
   CheckResponse response_out;
   Status status_out = Status::UNKNOWN;
-  client_->Check(request_in, &response_out,
-                 [&status_out](Status status) { status_out = status; });
+  stream_.Call(request_in, &response_out,
+               [&status_out](Status status) { status_out = status; });
   // Write request.
   EXPECT_TRUE(MessageDifferencer::Equals(request_in, request_out));
   // But not response
@@ -110,7 +95,7 @@ TEST_F(MixerClientImplTest, TestSingleCheck) {
   reader->OnClose(Status::OK);
 }
 
-TEST_F(MixerClientImplTest, TestTwoOutOfOrderChecks) {
+TEST_F(TransportImplTest, TestTwoOutOfOrderChecks) {
   MockWriter<CheckRequest>* writer = new MockWriter<CheckRequest>;
   CheckReaderRawPtr reader;
 
@@ -136,9 +121,9 @@ TEST_F(MixerClientImplTest, TestTwoOutOfOrderChecks) {
   response_in_2.set_request_index(request_in_2.request_index());
 
   CheckResponse response_out_1;
-  client_->Check(request_in_1, &response_out_1, [](Status status) {});
+  stream_.Call(request_in_1, &response_out_1, [](Status status) {});
   CheckResponse response_out_2;
-  client_->Check(request_in_2, &response_out_2, [](Status status) {});
+  stream_.Call(request_in_2, &response_out_2, [](Status status) {});
 
   // Write response in wrong order
   reader->OnRead(response_in_2);
@@ -150,7 +135,7 @@ TEST_F(MixerClientImplTest, TestTwoOutOfOrderChecks) {
   reader->OnClose(Status::OK);
 }
 
-TEST_F(MixerClientImplTest, TestCheckWithStreamClose) {
+TEST_F(TransportImplTest, TestCheckWithStreamClose) {
   MockWriter<CheckRequest>* writer = new MockWriter<CheckRequest>;
   CheckReaderRawPtr reader;
 
@@ -167,8 +152,8 @@ TEST_F(MixerClientImplTest, TestCheckWithStreamClose) {
 
   CheckResponse response_out;
   Status status_out = Status::UNKNOWN;
-  client_->Check(request_in, &response_out,
-                 [&status_out](Status status) { status_out = status; });
+  stream_.Call(request_in, &response_out,
+               [&status_out](Status status) { status_out = status; });
 
   // Close the stream
   reader->OnClose(Status::CANCELLED);
@@ -177,7 +162,7 @@ TEST_F(MixerClientImplTest, TestCheckWithStreamClose) {
   EXPECT_EQ(status_out, Status::CANCELLED);
 }
 
-TEST_F(MixerClientImplTest, TestHalfClose) {
+TEST_F(TransportImplTest, TestHalfClose) {
   MockWriter<CheckRequest>* writers[2] = {new MockWriter<CheckRequest>,
                                           new MockWriter<CheckRequest>};
   CheckReaderRawPtr readers[2];
@@ -201,7 +186,7 @@ TEST_F(MixerClientImplTest, TestHalfClose) {
   response_in_1.set_request_index(request_in_1.request_index());
 
   CheckResponse response_out_1;
-  client_->Check(request_in_1, &response_out_1, [](Status status) {});
+  stream_.Call(request_in_1, &response_out_1, [](Status status) {});
 
   // Send the second request
   CheckRequest request_in_2;
@@ -210,7 +195,7 @@ TEST_F(MixerClientImplTest, TestHalfClose) {
   response_in_2.set_request_index(request_in_2.request_index());
 
   CheckResponse response_out_2;
-  client_->Check(request_in_2, &response_out_2, [](Status status) {});
+  stream_.Call(request_in_2, &response_out_2, [](Status status) {});
 
   // Write responses
   readers[1]->OnRead(response_in_2);
