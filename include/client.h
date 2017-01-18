@@ -86,7 +86,7 @@ class MixerClient {
   // Attribute based calls will be used.
   // Callers should pass in the full set of attributes for the call.
   // The client will use the full set attributes to check cache. If cache
-  // miss, an attribute context based on the underline gRPC stream will
+  // miss, an attribute context based on the underlying gRPC stream will
   // be used to generate attribute_update and send that to Mixer server.
   // Callers don't need response data, they only need success or failure.
   // The response data from mixer will be consumed by mixer client.
