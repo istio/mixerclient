@@ -69,10 +69,11 @@ struct Attributes {
       int64_t int64_v;
       double double_v;
       bool bool_v;
-      std::chrono::time_point<std::chrono::system_clock> time_v;
     } value;
-    // Outside of union since it is not easy for union to support it.
+    // Move types with constructor outside of union.
+    // It is not easy for union to support them.
     std::string str_v;  // for both STRING and BYTES
+    std::chrono::time_point<std::chrono::system_clock> time_v;
   };
 
   std::map<std::string, Value> attributes;
