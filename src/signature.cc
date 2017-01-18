@@ -27,27 +27,35 @@ const char kDelimiter[] = "\0";
 const int kDelimiterLength = 1;
 }  // namespace
 
-string GenerateAttributesSignature(const Attributes& attributes) {
+string GenerateSignature(const Attributes& attributes) {
   MD5 hasher;
 
   for (const auto& attribute : attributes.attributes) {
+    hasher.Update(attribute.first);
+    hasher.Update(kDelimiter, kDelimiterLength);
     switch (attribute.second.type) {
       case Attributes::Value::ValueType::STRING:
-        hasher.Update(attribute.second.value.str_v);
+        hasher.Update(attribute.second.str_v);
+        break;
       case Attributes::Value::ValueType::BYTES:
-        hasher.Update(attribute.second.value.str_v);
+        hasher.Update(attribute.second.str_v);
+        break;
       case Attributes::Value::ValueType::INT64:
         hasher.Update(&attribute.second.value.int64_v,
                       sizeof(attribute.second.value.int64_v));
+        break;
       case Attributes::Value::ValueType::DOUBLE:
         hasher.Update(&attribute.second.value.double_v,
                       sizeof(attribute.second.value.double_v));
+        break;
       case Attributes::Value::ValueType::BOOL:
         hasher.Update(&attribute.second.value.bool_v,
                       sizeof(attribute.second.value.bool_v));
+        break;
       case Attributes::Value::ValueType::TIME:
-        hasher.Update(&attribute.second.value.time_v,
-                      sizeof(attribute.second.value.time_v));
+        hasher.Update(&attribute.second.time_v,
+                      sizeof(attribute.second.time_v));
+        break;
     }
     hasher.Update(kDelimiter, kDelimiterLength);
   }
