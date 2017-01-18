@@ -48,14 +48,12 @@ class WriterImpl : public WriteInterface<RequestType> {
   Status done_status;
 };
 
-class MixerClientImplTest : public ::testing::Test,
-                            public TransportInterface {
+class MixerClientImplTest : public ::testing::Test, public TransportInterface {
  public:
-  MixerClientImplTest() :
-      check_writer_(new WriterImpl<CheckRequest, CheckResponse>),
-      report_writer_(new WriterImpl<ReportRequest, ReportResponse>),
-      quota_writer_(new WriterImpl<QuotaRequest, QuotaResponse>) {
-
+  MixerClientImplTest()
+      : check_writer_(new WriterImpl<CheckRequest, CheckResponse>),
+        report_writer_(new WriterImpl<ReportRequest, ReportResponse>),
+        quota_writer_(new WriterImpl<QuotaRequest, QuotaResponse>) {
     MixerClientOptions options(
         CheckOptions(1 /*entries */, 500 /* refresh_interval_ms */,
                      1000 /* expiration_ms */),
