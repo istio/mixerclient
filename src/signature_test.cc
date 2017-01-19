@@ -16,6 +16,7 @@
 #include "src/signature.h"
 #include "utils/md5.h"
 
+#include <time.h>
 #include "google/protobuf/text_format.h"
 #include "gtest/gtest.h"
 
@@ -28,8 +29,6 @@ namespace {
 
 class SignatureUtilTest : public ::testing::Test {
  protected:
-  SignatureUtilTest() { attributes_map_.attributes.clear(); }
-
   void AddString(const string& key, const string& value) {
     Attributes::Value string_value;
     string_value.type = Attributes::Value::STRING;
@@ -85,16 +84,22 @@ TEST_F(SignatureUtilTest, Attributes) {
   EXPECT_EQ("1f409524b79b9b5760032dab7ecaf960",
             MD5::DebugString(GenerateSignature(attributes_map_)));
 
-  AddDoublePair("double-key", 999);
-  EXPECT_EQ("e9c0e5f10e2110ca0636d421da4da29e",
+  AddDoublePair("double-key", 99.9);
+  EXPECT_EQ("6183342ff222018f6300de51cdcd4501",
             MD5::DebugString(GenerateSignature(attributes_map_)));
 
   AddInt64Pair("int-key", 35);
-  EXPECT_EQ("02da0af21811309e2290c37a703082d5",
+  EXPECT_EQ("d681b9c72d648f9c831d95b4748fe1c2",
             MD5::DebugString(GenerateSignature(attributes_map_)));
 
   AddBoolPair("bool-key", true);
-  EXPECT_EQ("b1ffa4e01c3882938d6fd75a575f259a",
+  EXPECT_EQ("958930b41f0d8b43f5c61c31b0b092e2",
+            MD5::DebugString(GenerateSignature(attributes_map_)));
+
+  // default to Clock's epoch.
+  std::chrono::time_point<std::chrono::system_clock> time_point;
+  AddTime("time-key", time_point);
+  EXPECT_EQ("44953987f7424cecc6dc69ffb7a8bf86",
             MD5::DebugString(GenerateSignature(attributes_map_)));
 }
 
