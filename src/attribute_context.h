@@ -33,11 +33,10 @@ class AttributeContext {
   int64_t IncRequestIndex() { return ++request_index_; }
 
  private:
-  // Update the dictionary.
-  bool UpdateDictionary(const Attributes &attributes);
-
   // dictionary map.
-  std::map<std::string, int> name_map_;
+  std::map<std::string, int> dict_map_;
+
+  // The request_index for this context.
   int64_t request_index_;
 };
 

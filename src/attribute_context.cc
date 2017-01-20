@@ -41,34 +41,28 @@ Timestamp CreateTimestamp(std::chrono::system_clock::time_point tp) {
 
 }  // namespace
 
-bool AttributeContext::UpdateDictionary(const Attributes& attributes) {
-  int next_index = name_map_.size();
-  bool changed = false;
-  for (const auto& it : attributes.attributes) {
-    const std::string& name = it.first;
-    if (name_map_.find(name) == name_map_.end()) {
-      changed = true;
-      name_map_[name] = ++next_index;
-    }
-  }
-  return changed;
-}
-
 void AttributeContext::FillProto(const Attributes& attributes,
                                  ::istio::mixer::v1::Attributes* pb) {
-  if (UpdateDictionary(attributes)) {
-    Map<int32_t, std::string>* dict = pb->mutable_dictionary();
-    for (const auto& it : name_map_) {
-      (*dict)[it.second] = it.first;
-    }
-  }
-
   // TODO build context use kContextSet to reduce attributes.
 
   // Fill attributes.
+  int next_dict_index = dict_map_.size();
+  bool dict_changed = false;
   for (const auto& it : attributes.attributes) {
     const std::string& name = it.first;
-    int index = name_map_[name];
+
+    // Find index for the name.
+    int index;
+    const auto& dict_it = dict_map_.find(name);
+    if (dict_it == dict_map_.end()) {
+      dict_changed = true;
+      index = ++next_dict_index;
+      dict_map_[name] = index;
+    } else {
+      index = dict_it->second;
+    }
+
+    // Fill the attribute to proper map.
     switch (it.second.type) {
       case Attributes::Value::ValueType::STRING:
         (*pb->mutable_string_attributes())[index] = it.second.str_v;
@@ -89,6 +83,13 @@ void AttributeContext::FillProto(const Attributes& attributes,
         (*pb->mutable_timestamp_attributes())[index] =
             CreateTimestamp(it.second.time_v);
         break;
+    }
+  }
+
+  if (dict_changed) {
+    Map<int32_t, std::string>* dict = pb->mutable_dictionary();
+    for (const auto& it : dict_map_) {
+      (*dict)[it.second] = it.first;
     }
   }
 }
