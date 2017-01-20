@@ -57,6 +57,8 @@ void AttributeContext::FillProto(const Attributes& attributes,
     if (dict_it == dict_map_.end()) {
       dict_changed = true;
       index = ++next_dict_index;
+      // Assume attribute names are a fixed name set.
+      // so not need to remove names from dictionary.
       dict_map_[name] = index;
     } else {
       index = dict_it->second;
