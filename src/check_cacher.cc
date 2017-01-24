@@ -64,12 +64,12 @@ Status CheckCacher::Check(const Attributes& attributes,
   CacheElem* elem = lookup.value();
 
   if (ShouldFlush(*elem)) {
+    // Setting last check to now to block more check requests to Chemist.
+    elem->set_last_check_time(SimpleCycleTimer::Now());
     // By returning NO_FOUND, caller will send request to server.
     return Status(Code::NOT_FOUND, "");
   }
 
-  // Setting last check to now to block more check requests to Chemist.
-  elem->set_last_check_time(SimpleCycleTimer::Now());
   *response = elem->check_response();
 
   return Status::OK;
@@ -95,13 +95,6 @@ Status CheckCacher::CacheResponse(const Attributes& attributes,
   }
 
   return Status::OK;
-}
-
-// When the next Flush() should be called.
-// Flush() call remove expired response.
-int CheckCacher::GetNextFlushInterval() {
-  if (!cache_) return -1;
-  return options_.expiration_ms;
 }
 
 // Flush aggregated requests whom are longer than flush_interval.

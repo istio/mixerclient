@@ -52,10 +52,6 @@ class CheckCacher {
       const Attributes& request,
       const ::istio::mixer::v1::CheckResponse& response);
 
-  // When the next Flush() should be called.
-  // Returns in ms from now, or -1 for never.
-  virtual int GetNextFlushInterval();
-
   // Invalidates expired check responses.
   // Called at time specified by GetNextFlushInterval().
   virtual ::google::protobuf::util::Status Flush();
@@ -70,9 +66,6 @@ class CheckCacher {
     CacheElem(const ::istio::mixer::v1::CheckResponse& response,
               const int64_t time)
         : check_response_(response), last_check_time_(time) {}
-
-    // Returns the Attributes and reset the cache entry.
-    Attributes ReturnAttributesAndClear();
 
     // Setter for check response.
     inline void set_check_response(
