@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "src/check_cacher.h"
+#include "src/check_cache.h"
 #include "src/signature.h"
 
 #include "google/protobuf/stubs/logging.h"
@@ -27,34 +27,34 @@ using ::google::protobuf::util::error::Code;
 namespace istio {
 namespace mixer_client {
 
-CheckCacher::CheckCacher(const CheckOptions& options) : options_(options) {
+CheckCache::CheckCache(const CheckOptions& options) : options_(options) {
   // Converts flush_interval_ms to Cycle used by SimpleCycleTimer.
   flush_interval_in_cycle_ =
       options_.flush_interval_ms * SimpleCycleTimer::Frequency() / 1000;
 
   if (options.num_entries >= 0) {
-    cache_.reset(new CheckCache(
-        options.num_entries, std::bind(&CheckCacher::OnCacheEntryDelete, this,
+    cache_.reset(new CheckLRUCache(
+        options.num_entries, std::bind(&CheckCache::OnCacheEntryDelete, this,
                                        std::placeholders::_1)));
     cache_->SetMaxIdleSeconds(options.expiration_ms / 1000.0);
   }
 }
 
-CheckCacher::~CheckCacher() {
+CheckCache::~CheckCache() {
   // FlushAll() will remove all cache items.
   FlushAll();
 }
 
-bool CheckCacher::ShouldFlush(const CacheElem& elem) {
+bool CheckCache::ShouldFlush(const CacheElem& elem) {
   int64_t age = SimpleCycleTimer::Now() - elem.last_check_time();
   return age >= flush_interval_in_cycle_;
 }
 
-Status CheckCacher::Check(const Attributes& attributes,
-                          CheckResponse* response) {
+Status CheckCache::Check(const Attributes& attributes,
+                         CheckResponse* response) {
   string request_signature = GenerateSignature(attributes);
   std::unique_lock<std::mutex> lock(cache_mutex_);
-  CheckCache::ScopedLookup lookup(cache_.get(), request_signature);
+  CheckLRUCache::ScopedLookup lookup(cache_.get(), request_signature);
 
   if (!lookup.Found()) {
     // By returning NO_FOUND, caller will send request to server.
@@ -64,7 +64,7 @@ Status CheckCacher::Check(const Attributes& attributes,
   CacheElem* elem = lookup.value();
 
   if (ShouldFlush(*elem)) {
-    // Setting last check to now to block more check requests to Chemist.
+    // Setting last check to now to block more check requests to Mixer.
     elem->set_last_check_time(SimpleCycleTimer::Now());
     // By returning NO_FOUND, caller will send request to server.
     return Status(Code::NOT_FOUND, "");
@@ -75,13 +75,13 @@ Status CheckCacher::Check(const Attributes& attributes,
   return Status::OK;
 }
 
-Status CheckCacher::CacheResponse(const Attributes& attributes,
-                                  const CheckResponse& response) {
+Status CheckCache::CacheResponse(const Attributes& attributes,
+                                 const CheckResponse& response) {
   std::unique_lock<std::mutex> lock(cache_mutex_);
 
   if (cache_) {
     string request_signature = GenerateSignature(attributes);
-    CheckCache::ScopedLookup lookup(cache_.get(), request_signature);
+    CheckLRUCache::ScopedLookup lookup(cache_.get(), request_signature);
 
     int64_t now = SimpleCycleTimer::Now();
 
@@ -99,7 +99,7 @@ Status CheckCacher::CacheResponse(const Attributes& attributes,
 
 // Flush aggregated requests whom are longer than flush_interval.
 // Called at time specified by GetNextFlushInterval().
-Status CheckCacher::Flush() {
+Status CheckCache::Flush() {
   std::unique_lock<std::mutex> lock(cache_mutex_);
 
   if (cache_) {
@@ -109,11 +109,11 @@ Status CheckCacher::Flush() {
   return Status::OK;
 }
 
-void CheckCacher::OnCacheEntryDelete(CacheElem* elem) { delete elem; }
+void CheckCache::OnCacheEntryDelete(CacheElem* elem) { delete elem; }
 
 // Flush out aggregated check requests, clear all cache items.
 // Usually called at destructor.
-Status CheckCacher::FlushAll() {
+Status CheckCache::FlushAll() {
   GOOGLE_LOG(INFO) << "Remove all entries of check cache.";
   std::unique_lock<std::mutex> lock(cache_mutex_);
 
@@ -122,10 +122,6 @@ Status CheckCacher::FlushAll() {
   }
 
   return Status::OK;
-}
-
-std::unique_ptr<CheckCacher> CreateCheckCacher(const CheckOptions& options) {
-  return std::unique_ptr<CheckCacher>(new CheckCacher(options));
 }
 
 }  // namespace mixer_client

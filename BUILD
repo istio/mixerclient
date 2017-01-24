@@ -22,8 +22,8 @@ cc_library(
         "src/attribute_context.cc",
         "src/attribute_context.h",
         "src/attribute_converter.h",
-        "src/check_cacher.cc",
-        "src/check_cacher.h",
+        "src/check_cache.cc",
+        "src/check_cache.h",
         "src/client_impl.cc",
         "src/client_impl.h",
         "src/signature.cc",
@@ -114,9 +114,9 @@ cc_test(
 )
 
 cc_test(
-    name = "check_cacher_test",
+    name = "check_cache_test",
     size = "small",
-    srcs = ["src/check_cacher_test.cc"],
+    srcs = ["src/check_cache_test.cc"],
     deps = [
         ":mixer_client_lib",
         "//external:googletest_main",

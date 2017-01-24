@@ -35,11 +35,11 @@ namespace mixer_client {
 
 // Cache Mixer Check Attributes.
 // This interface is thread safe.
-class CheckCacher {
+class CheckCache {
  public:
-  CheckCacher(const CheckOptions& options);
+  CheckCache(const CheckOptions& options);
 
-  virtual ~CheckCacher();
+  virtual ~CheckCache();
 
   // If the check could not be handled by the cache, returns NOT_FOUND,
   // caller has to send the request to mixer.
@@ -99,7 +99,7 @@ class CheckCacher {
   using CacheDeleter = std::function<void(CacheElem*)>;
   // Key is the signature of the Attributes. Value is the CacheElem.
   // It is a LRU cache with MaxIdelTime as response_expiration_time.
-  using CheckCache =
+  using CheckLRUCache =
       SimpleLRUCacheWithDeleter<std::string, CacheElem, CacheDeleter>;
 
   // Returns whether we should flush a cache entry.
@@ -122,16 +122,13 @@ class CheckCacher {
   // We don't calculate fine grained cost for cache entries, assign each
   // entry 1 cost unit.
   // Guarded by mutex_, except when compare against NULL.
-  std::unique_ptr<CheckCache> cache_;
+  std::unique_ptr<CheckLRUCache> cache_;
 
   // flush interval in cycles.
   int64_t flush_interval_in_cycle_;
 
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(CheckCacher);
+  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(CheckCache);
 };
-
-// Create a check cache.
-std::unique_ptr<CheckCacher> CreateCheckCacher(const CheckOptions& options);
 
 }  // namespace mixer_client
 }  // namespace istio

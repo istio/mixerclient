@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "src/check_cacher.h"
+#include "src/check_cache.h"
 
 #include "gmock/gmock.h"
 #include "google/protobuf/text_format.h"
@@ -47,15 +47,15 @@ result: {
 )";
 }
 
-class CheckCacherTest : public ::testing::Test {
+class CheckCacheTest : public ::testing::Test {
  public:
   void SetUp() {
     ASSERT_TRUE(
         TextFormat::ParseFromString(kSuccessResponse1, &pass_response1_));
     CheckOptions options(1 /*entries*/, kFlushIntervalMs, kExpirationMs);
 
-    cacher_ = CreateCheckCacher(options);
-    ASSERT_TRUE((bool)(cacher_));
+    cache_ = std::unique_ptr<CheckCache>(new CheckCache(options));
+    ASSERT_TRUE((bool)(cache_));
 
     Attributes::Value string_value;
     string_value.type = Attributes::Value::STRING;
@@ -66,60 +66,59 @@ class CheckCacherTest : public ::testing::Test {
   Attributes attributes1_;
   CheckResponse pass_response1_;
 
-  std::unique_ptr<CheckCacher> cacher_;
-  std::vector<Attributes> flushed_;
+  std::unique_ptr<CheckCache> cache_;
 };
 
-TEST_F(CheckCacherTest, TestDisableCache) {
+TEST_F(CheckCacheTest, TestDisableCache) {
   CheckOptions options(0 /*entries*/, 1000, 2000);
-  cacher_ = CreateCheckCacher(options);
+  cache_ = std::unique_ptr<CheckCache>(new CheckCache(options));
 
-  ASSERT_TRUE((bool)(cacher_));
+  ASSERT_TRUE((bool)(cache_));
   CheckResponse response;
-  EXPECT_ERROR_CODE(Code::NOT_FOUND, cacher_->Check(attributes1_, &response));
+  EXPECT_ERROR_CODE(Code::NOT_FOUND, cache_->Check(attributes1_, &response));
 }
 
-TEST_F(CheckCacherTest, TestCachePassResponses) {
+TEST_F(CheckCacheTest, TestCachePassResponses) {
   CheckResponse response;
-  EXPECT_ERROR_CODE(Code::NOT_FOUND, cacher_->Check(attributes1_, &response));
+  EXPECT_ERROR_CODE(Code::NOT_FOUND, cache_->Check(attributes1_, &response));
 
-  EXPECT_OK(cacher_->CacheResponse(attributes1_, pass_response1_));
-  EXPECT_OK(cacher_->Check(attributes1_, &response));
+  EXPECT_OK(cache_->CacheResponse(attributes1_, pass_response1_));
+  EXPECT_OK(cache_->Check(attributes1_, &response));
 }
 
-TEST_F(CheckCacherTest, TestRefresh) {
+TEST_F(CheckCacheTest, TestRefresh) {
   CheckResponse response;
-  EXPECT_ERROR_CODE(Code::NOT_FOUND, cacher_->Check(attributes1_, &response));
-  EXPECT_OK(cacher_->CacheResponse(attributes1_, pass_response1_));
-  EXPECT_OK(cacher_->Check(attributes1_, &response));
+  EXPECT_ERROR_CODE(Code::NOT_FOUND, cache_->Check(attributes1_, &response));
+  EXPECT_OK(cache_->CacheResponse(attributes1_, pass_response1_));
+  EXPECT_OK(cache_->Check(attributes1_, &response));
   // sleep 0.12 second.
   usleep(120000);
 
   // First one should be NOT_FOUND for refresh
-  EXPECT_ERROR_CODE(Code::NOT_FOUND, cacher_->Check(attributes1_, &response));
+  EXPECT_ERROR_CODE(Code::NOT_FOUND, cache_->Check(attributes1_, &response));
   // Second one use cached response.
-  EXPECT_OK(cacher_->CacheResponse(attributes1_, pass_response1_));
-  EXPECT_OK(cacher_->Check(attributes1_, &response));
+  EXPECT_OK(cache_->CacheResponse(attributes1_, pass_response1_));
+  EXPECT_OK(cache_->Check(attributes1_, &response));
   EXPECT_TRUE(MessageDifferencer::Equals(response, pass_response1_));
 
-  EXPECT_OK(cacher_->FlushAll());
-  EXPECT_ERROR_CODE(Code::NOT_FOUND, cacher_->Check(attributes1_, &response));
+  EXPECT_OK(cache_->FlushAll());
+  EXPECT_ERROR_CODE(Code::NOT_FOUND, cache_->Check(attributes1_, &response));
 }
 
-TEST_F(CheckCacherTest, TestCacheExpired) {
+TEST_F(CheckCacheTest, TestCacheExpired) {
   CheckResponse response;
-  EXPECT_ERROR_CODE(Code::NOT_FOUND, cacher_->Check(attributes1_, &response));
+  EXPECT_ERROR_CODE(Code::NOT_FOUND, cache_->Check(attributes1_, &response));
 
-  EXPECT_OK(cacher_->CacheResponse(attributes1_, pass_response1_));
-  EXPECT_OK(cacher_->Check(attributes1_, &response));
+  EXPECT_OK(cache_->CacheResponse(attributes1_, pass_response1_));
+  EXPECT_OK(cache_->Check(attributes1_, &response));
   EXPECT_TRUE(MessageDifferencer::Equals(response, pass_response1_));
 
   // sleep 0.22 second to cause cache expired.
   usleep(220000);
-  EXPECT_OK(cacher_->Flush());
+  EXPECT_OK(cache_->Flush());
 
   // First one should be NOT_FOUND for refresh
-  EXPECT_ERROR_CODE(Code::NOT_FOUND, cacher_->Check(attributes1_, &response));
+  EXPECT_ERROR_CODE(Code::NOT_FOUND, cache_->Check(attributes1_, &response));
 }
 
 }  // namespace mixer_client
