@@ -138,6 +138,7 @@ cc_test(
     linkopts = [
         "-lm",
         "-lpthread",
+        "-lrt",
     ],
     linkstatic = 1,
     deps = [
