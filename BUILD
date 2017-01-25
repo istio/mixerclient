@@ -135,6 +135,10 @@ cc_test(
     name = "grpc_transport_test",
     size = "small",
     srcs = ["src/grpc_transport_test.cc"],
+    linkopts = [
+        "-lm",
+        "-lpthread",
+    ],
     linkstatic = 1,
     deps = [
         ":mixer_client_lib",
