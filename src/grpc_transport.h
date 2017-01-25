@@ -16,63 +16,12 @@
 #define MIXERCLIENT_SRC_TRANSPORT_H
 
 #include <grpc++/grpc++.h>
-#include <thread>
 
 #include "include/transport.h"
 #include "mixer/api/v1/service.grpc.pb.h"
 
 namespace istio {
 namespace mixer_client {
-
-// A writer implemenation to use gRPC stream
-template <class RequestType, class ResponseType>
-class GrpcStream : public WriteInterface<RequestType> {
- public:
-  typedef std::unique_ptr<
-      ::grpc::ClientReaderWriterInterface<RequestType, ResponseType>>
-      StreamPtr;
-  typedef std::function<StreamPtr(::grpc::ClientContext&)> StreamNewFunc;
-
-  GrpcStream(ReadInterface<ResponseType>* reader, StreamNewFunc create_func)
-      : reader_(reader), write_closed_(false) {
-    stream_ = create_func(context_);
-    worker_thread_ = std::thread([this]() { WorkerThread(); });
-  }
-
-  ~GrpcStream() { worker_thread_.join(); }
-
-  void Write(const RequestType& request) {
-    if (!stream_->Write(request)) {
-      WritesDone();
-    }
-  }
-
-  void WritesDone() {
-    stream_->WritesDone();
-    write_closed_ = true;
-  }
-
-  bool is_write_closed() const { return write_closed_; }
-
- private:
-  void WorkerThread() {
-    ResponseType response;
-    while (stream_->Read(&response)) {
-      reader_->OnRead(response);
-    }
-    ::grpc::Status status = stream_->Finish();
-    ::google::protobuf::util::Status pb_status(
-        ::google::protobuf::util::error::Code(status.error_code()),
-        ::google::protobuf::StringPiece(status.error_message()));
-    reader_->OnClose(pb_status);
-  }
-
-  ::grpc::ClientContext context_;
-  StreamPtr stream_;
-  std::thread worker_thread_;
-  ReadInterface<ResponseType>* reader_;
-  bool write_closed_;
-};
 
 // A gRPC implementation of Mixer transport
 class GrpcTransport : public TransportInterface {

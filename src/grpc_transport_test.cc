@@ -44,6 +44,7 @@ using ::testing::_;
 namespace istio {
 namespace mixer_client {
 
+// A fake Mixer gRPC server: just echo a response for each request.
 class MockMixerServerImpl final : public ::istio::mixer::v1::Mixer::Service {
  public:
   grpc::Status Check(
@@ -94,6 +95,7 @@ class MockReader : public ReadInterface<T> {
 class GrpcTransportTest : public ::testing::Test {
  public:
   void SetUp() {
+    // TODO: pick a un-used port. If this port is used, the test will fail.
     std::string server_address("0.0.0.0:50051");
     ServerBuilder builder;
     builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
@@ -136,6 +138,7 @@ TEST_F(GrpcTransportTest, TestSuccessCheck) {
   // Close the stream
   writer->WritesDone();
 
+  // Wait for OnClose() to be called.
   status_future.wait();
   EXPECT_TRUE(status_future.get().ok());
   EXPECT_EQ(response.request_index(), request.request_index());

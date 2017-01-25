@@ -13,9 +13,68 @@
  * limitations under the License.
  */
 #include "src/grpc_transport.h"
+#include <thread>
 
 namespace istio {
 namespace mixer_client {
+namespace {
+
+// A gRPC stream
+template <class RequestType, class ResponseType>
+class GrpcStream final : public WriteInterface<RequestType> {
+ public:
+  typedef std::unique_ptr<
+      ::grpc::ClientReaderWriterInterface<RequestType, ResponseType>>
+      StreamPtr;
+  typedef std::function<StreamPtr(::grpc::ClientContext&)> StreamNewFunc;
+
+  GrpcStream(ReadInterface<ResponseType>* reader, StreamNewFunc create_func)
+      : reader_(reader), write_closed_(false) {
+    stream_ = create_func(context_);
+    worker_thread_ = std::thread([this]() { WorkerThread(); });
+  }
+
+  ~GrpcStream() { worker_thread_.join(); }
+
+  void Write(const RequestType& request) override {
+    if (!stream_->Write(request)) {
+      WritesDone();
+    }
+  }
+
+  void WritesDone() override {
+    stream_->WritesDone();
+    write_closed_ = true;
+  }
+
+  bool is_write_closed() const override { return write_closed_; }
+
+ private:
+  // The worker loop to read response messages.
+  void WorkerThread() {
+    ResponseType response;
+    while (stream_->Read(&response)) {
+      reader_->OnRead(response);
+    }
+    ::grpc::Status status = stream_->Finish();
+    // Convert grpc status to protobuf status.
+    ::google::protobuf::util::Status pb_status(
+        ::google::protobuf::util::error::Code(status.error_code()),
+        ::google::protobuf::StringPiece(status.error_message()));
+    reader_->OnClose(pb_status);
+  }
+
+  // The client context.
+  ::grpc::ClientContext context_;
+  // The reader writer stream.
+  StreamPtr stream_;
+  // The thread to read response.
+  std::thread worker_thread_;
+  // The reader interface from caller.
+  ReadInterface<ResponseType>* reader_;
+  // Indicates if write is closed.
+  bool write_closed_;
+};
 
 typedef GrpcStream<::istio::mixer::v1::CheckRequest,
                    ::istio::mixer::v1::CheckResponse>
@@ -26,6 +85,8 @@ typedef GrpcStream<::istio::mixer::v1::ReportRequest,
 typedef GrpcStream<::istio::mixer::v1::QuotaRequest,
                    ::istio::mixer::v1::QuotaResponse>
     QuotaGrpcStream;
+
+}  // namespace
 
 GrpcTransport::GrpcTransport(const std::string& mixer_server) {
   channel_ = CreateChannel(mixer_server, ::grpc::InsecureChannelCredentials());
