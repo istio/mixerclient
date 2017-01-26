@@ -47,10 +47,10 @@ class ReaderImpl : public ReadInterface<ResponseType> {
       }
     }
     if (closed_on_done) {
-      // The stream is nicely closed, but response is not received.
+      // The stream is already closed, calls its on_done with error.
       closed_on_done(::google::protobuf::util::Status(
           ::google::protobuf::util::error::Code::DATA_LOSS,
-          "Response is missing."));
+          "Stream is already closed."));
     }
   }
 
@@ -98,6 +98,8 @@ class ReaderImpl : public ReadInterface<ResponseType> {
       }
     }
 
+    // on_close_ should be properly released since it owns this
+    // ReaderImpl object.
     std::function<void()> tmp_on_close;
     tmp_on_close.swap(on_close_);
     if (tmp_on_close) {
@@ -144,12 +146,12 @@ class StreamTransport {
     if (!writer || !reader || writer->is_write_closed()) {
       reader = std::make_shared<ReaderImpl<ResponseType>>();
       auto writer_unique_ptr = transport_->NewStream(reader.get());
-      // Transfer ownership to shared_prt.
+      // Transfer writer ownership to shared_ptr.
       writer.reset(writer_unique_ptr.release());
       reader_ = reader;
       writer_ = writer;
-      // Reader and Writer objects are owned by the reader object.
-      // When its OnClose() is called, they will be released.
+      // Reader and Writer objects are owned by the OnClose callback.
+      // After the OnClose() is released, they will be released.
       reader->SetOnCloseCallback([reader, writer]() {});
     }
     RequestType request;
