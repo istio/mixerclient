@@ -50,10 +50,10 @@ void MixerClientImpl::Check(const Attributes &attributes, DoneFunc on_done) {
 void MixerClientImpl::Report(const Attributes &attributes, DoneFunc on_done) {
   auto response = new ReportResponse;
   report_transport_->Send(attributes, response,
-                         [response, on_done](const Status &status) {
-                           delete response;
-                           on_done(status);
-                         });
+                          [response, on_done](const Status &status) {
+                            delete response;
+                            on_done(status);
+                          });
 }
 
 void MixerClientImpl::Quota(const Attributes &attributes, DoneFunc on_done) {
