@@ -14,7 +14,6 @@
  */
 
 #include "include/client.h"
-#include "src/check_cache.h"
 
 #include "gtest/gtest.h"
 
