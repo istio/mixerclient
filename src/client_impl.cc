@@ -20,6 +20,7 @@ using ::istio::mixer::v1::CheckResponse;
 using ::istio::mixer::v1::ReportResponse;
 using ::istio::mixer::v1::QuotaResponse;
 using ::google::protobuf::util::Status;
+using ::google::protobuf::util::error::Code;
 
 namespace istio {
 namespace mixer_client {
@@ -35,17 +36,24 @@ MixerClientImpl::MixerClientImpl(const MixerClientOptions &options)
   check_transport_.reset(new CheckTransport(transport));
   report_transport_.reset(new ReportTransport(transport));
   quota_transport_.reset(new QuotaTransport(transport));
+  check_cache_ =
+      std::unique_ptr<CheckCache>(new CheckCache(options.check_options));
 }
 
-MixerClientImpl::~MixerClientImpl() {}
+MixerClientImpl::~MixerClientImpl() { check_cache_->FlushAll(); }
 
 void MixerClientImpl::Check(const Attributes &attributes, DoneFunc on_done) {
   auto response = new CheckResponse;
-  check_transport_->Send(attributes, response,
-                         [response, on_done](const Status &status) {
-                           delete response;
-                           on_done(status);
-                         });
+  Status status = check_cache_->Check(attributes, response);
+  if (status.error_code() == Code::NOT_FOUND) {
+    check_transport_->Send(attributes, response,
+                           [response, on_done](const Status &status) {
+                             delete response;
+                             on_done(status);
+                           });
+    return;
+  }
+  on_done(status);
 }
 
 void MixerClientImpl::Report(const Attributes &attributes, DoneFunc on_done) {
