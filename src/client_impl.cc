@@ -46,11 +46,14 @@ void MixerClientImpl::Check(const Attributes &attributes, DoneFunc on_done) {
   auto response = new CheckResponse;
   Status status = check_cache_->Check(attributes, response);
   if (status.error_code() == Code::NOT_FOUND) {
-    check_transport_->Send(attributes, response,
-                           [response, on_done](const Status &status) {
-                             delete response;
-                             on_done(status);
-                           });
+    std::shared_ptr<CheckCache> check_cache_copy = check_cache_;
+    check_transport_->Send(
+        attributes, response, [check_cache_copy, attributes, response,
+                               on_done](const Status &status) {
+          check_cache_copy->CacheResponse(attributes, *response);
+          delete response;
+          on_done(status);
+        });
     return;
   }
   on_done(status);

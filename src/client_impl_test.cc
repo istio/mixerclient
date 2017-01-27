@@ -63,8 +63,6 @@ class MixerClientImplTest : public ::testing::Test, public TransportInterface {
                      1000 /* expiration_ms */));
     options.transport = this;
     client_ = CreateMixerClient(options);
-    check_cache_ =
-        std::unique_ptr<CheckCache>(new CheckCache(options.check_options));
   }
 
   CheckWriterPtr NewStream(CheckReaderRawPtr reader) {
@@ -84,7 +82,6 @@ class MixerClientImplTest : public ::testing::Test, public TransportInterface {
   std::unique_ptr<WriterImpl<CheckRequest, CheckResponse>> check_writer_;
   std::unique_ptr<WriterImpl<ReportRequest, ReportResponse>> report_writer_;
   std::unique_ptr<WriterImpl<QuotaRequest, QuotaResponse>> quota_writer_;
-  std::shared_ptr<CheckCache> check_cache_;
 };
 
 TEST_F(MixerClientImplTest, TestSuccessCheck) {
