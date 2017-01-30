@@ -75,9 +75,9 @@ TEST_F(CheckCacheTest, TestDisableCache) {
 
   ASSERT_TRUE((bool)(cache_));
   CheckResponse response;
-  std::string signature;
+
   EXPECT_ERROR_CODE(Code::NOT_FOUND,
-                    cache_->Check(attributes1_, &response, &signature));
+                    cache_->Check(attributes1_, &response, nullptr));
 }
 
 TEST_F(CheckCacheTest, TestCachePassResponses) {

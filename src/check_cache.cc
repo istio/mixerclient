@@ -52,9 +52,13 @@ bool CheckCache::ShouldFlush(const CacheElem& elem) {
 
 Status CheckCache::Check(const Attributes& attributes, CheckResponse* response,
                          std::string* signature) {
-  *signature = GenerateSignature(attributes);
+  std::string request_signature = GenerateSignature(attributes);
+  if (signature) {
+    *signature = request_signature;
+  }
+
   std::lock_guard<std::mutex> lock(cache_mutex_);
-  CheckLRUCache::ScopedLookup lookup(cache_.get(), *signature);
+  CheckLRUCache::ScopedLookup lookup(cache_.get(), request_signature);
 
   if (!lookup.Found()) {
     // By returning NO_FOUND, caller will send request to server.
