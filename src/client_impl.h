@@ -32,7 +32,7 @@ class MixerClientImpl : public MixerClient {
   // Destructor
   virtual ~MixerClientImpl();
 
-  virtual void Check(Attributes& attributes, DoneFunc on_done);
+  virtual void Check(const Attributes& attributes, DoneFunc on_done);
   virtual void Report(const Attributes& attributes, DoneFunc on_done);
   virtual void Quota(const Attributes& attributes, DoneFunc on_done);
 

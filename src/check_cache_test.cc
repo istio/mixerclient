@@ -82,14 +82,17 @@ TEST_F(CheckCacheTest, TestCachePassResponses) {
   CheckResponse response;
   EXPECT_ERROR_CODE(Code::NOT_FOUND, cache_->Check(attributes1_, &response));
 
-  EXPECT_OK(cache_->CacheResponse(attributes1_, pass_response1_));
+  std::string signature = GenerateSignature(attributes1_);
+  EXPECT_OK(cache_->CacheResponse(signature, pass_response1_));
   EXPECT_OK(cache_->Check(attributes1_, &response));
 }
 
 TEST_F(CheckCacheTest, TestRefresh) {
   CheckResponse response;
   EXPECT_ERROR_CODE(Code::NOT_FOUND, cache_->Check(attributes1_, &response));
-  EXPECT_OK(cache_->CacheResponse(attributes1_, pass_response1_));
+
+  std::string signature = GenerateSignature(attributes1_);
+  EXPECT_OK(cache_->CacheResponse(signature, pass_response1_));
   EXPECT_OK(cache_->Check(attributes1_, &response));
   // sleep 0.12 second.
   usleep(120000);
@@ -97,7 +100,7 @@ TEST_F(CheckCacheTest, TestRefresh) {
   // First one should be NOT_FOUND for refresh
   EXPECT_ERROR_CODE(Code::NOT_FOUND, cache_->Check(attributes1_, &response));
   // Second one use cached response.
-  EXPECT_OK(cache_->CacheResponse(attributes1_, pass_response1_));
+  EXPECT_OK(cache_->CacheResponse(signature, pass_response1_));
   EXPECT_OK(cache_->Check(attributes1_, &response));
   EXPECT_TRUE(MessageDifferencer::Equals(response, pass_response1_));
 
@@ -109,7 +112,8 @@ TEST_F(CheckCacheTest, TestCacheExpired) {
   CheckResponse response;
   EXPECT_ERROR_CODE(Code::NOT_FOUND, cache_->Check(attributes1_, &response));
 
-  EXPECT_OK(cache_->CacheResponse(attributes1_, pass_response1_));
+  std::string signature = GenerateSignature(attributes1_);
+  EXPECT_OK(cache_->CacheResponse(signature, pass_response1_));
   EXPECT_OK(cache_->Check(attributes1_, &response));
   EXPECT_TRUE(MessageDifferencer::Equals(response, pass_response1_));
 

@@ -43,19 +43,19 @@ MixerClientImpl::MixerClientImpl(const MixerClientOptions &options)
 
 MixerClientImpl::~MixerClientImpl() { check_cache_->FlushAll(); }
 
-void MixerClientImpl::Check(Attributes &attributes, DoneFunc on_done) {
+void MixerClientImpl::Check(const Attributes &attributes, DoneFunc on_done) {
   auto response = new CheckResponse;
   Status status = check_cache_->Check(attributes, response);
   if (status.error_code() == Code::NOT_FOUND) {
-    Attributes *attributes_copy = new Attributes();
-    attributes_copy->attributes.swap(attributes.attributes);
+    std::string signature = GenerateSignature(attributes);
+
     std::shared_ptr<CheckCache> check_cache_copy = check_cache_;
     check_transport_->Send(
-        attributes, response, [check_cache_copy, attributes_copy, response,
-                               on_done](const Status &status) {
-          check_cache_copy->CacheResponse(*attributes_copy, *response);
+        attributes, response,
+        [check_cache_copy, signature, response, on_done](const Status &status) {
+          check_cache_copy->CacheResponse(signature, *response);
           delete response;
-          delete attributes_copy;
+
           on_done(status);
         });
     return;
