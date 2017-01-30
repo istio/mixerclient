@@ -50,11 +50,11 @@ bool CheckCache::ShouldFlush(const CacheElem& elem) {
   return age >= flush_interval_in_cycle_;
 }
 
-Status CheckCache::Check(const Attributes& attributes,
-                         CheckResponse* response) {
-  string request_signature = GenerateSignature(attributes);
+Status CheckCache::Check(const Attributes& attributes, CheckResponse* response,
+                         std::string* signature) {
+  *signature = GenerateSignature(attributes);
   std::lock_guard<std::mutex> lock(cache_mutex_);
-  CheckLRUCache::ScopedLookup lookup(cache_.get(), request_signature);
+  CheckLRUCache::ScopedLookup lookup(cache_.get(), *signature);
 
   if (!lookup.Found()) {
     // By returning NO_FOUND, caller will send request to server.

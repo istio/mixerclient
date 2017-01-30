@@ -46,7 +46,8 @@ class CheckCache {
   // caller has to send the request to mixer.
   // Otherwise, returns OK and cached response.
   virtual ::google::protobuf::util::Status Check(
-      const Attributes& request, ::istio::mixer::v1::CheckResponse* response);
+      const Attributes& request, ::istio::mixer::v1::CheckResponse* response,
+      std::string* signature);
 
   // Caches a response from a remote mixer call.
   virtual ::google::protobuf::util::Status CacheResponse(
