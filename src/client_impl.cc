@@ -25,6 +25,12 @@ using ::google::protobuf::util::error::Code;
 
 namespace istio {
 namespace mixer_client {
+namespace {
+Status ParseStatusFromResponse(const CheckResponse &response) {
+  return Status(static_cast<Code>(response.result().code()),
+                response.result().message());
+}
+}  // namespace
 
 MixerClientImpl::MixerClientImpl(const MixerClientOptions &options)
     : options_(options) {
@@ -52,15 +58,20 @@ void MixerClientImpl::Check(const Attributes &attributes, DoneFunc on_done) {
     check_transport_->Send(
         attributes, response,
         [check_cache_copy, signature, response, on_done](const Status &status) {
-          check_cache_copy->CacheResponse(signature, *response);
+          if (status.ok()) {
+            check_cache_copy->CacheResponse(signature, *response);
+            Status response_status = ParseStatusFromResponse(*response);
+            on_done(response_status);
+          } else {
+            on_done(status);
+          }
           delete response;
-
-          on_done(status);
         });
     return;
   }
+  Status response_status = ParseStatusFromResponse(*response);
   delete response;
-  on_done(status);
+  on_done(response_status);
 }
 
 void MixerClientImpl::Report(const Attributes &attributes, DoneFunc on_done) {
