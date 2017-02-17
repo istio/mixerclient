@@ -44,7 +44,7 @@ def presubmit(gitUtils, bazel) {
         },
         'tsan'   : {
           buildNode(gitUtils) {
-            bazel.test('--config=tsan //...')
+            bazel.test('--config=tsan_nopie //...')
           }
         },
     ]
