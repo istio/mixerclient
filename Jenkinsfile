@@ -13,6 +13,7 @@ def bazel = new Bazel()
 
 node {
   gitUtils.initialize()
+  bazel.setVars()
 }
 
 mainFlow(utils) {
