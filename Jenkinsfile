@@ -41,12 +41,7 @@ def presubmit(gitUtils, bazel) {
           buildNode(gitUtils) {
             bazel.test('--config=asan //...')
           }
-        },
-        'tsan'   : {
-          buildNode(gitUtils) {
-            bazel.test('--config=tsan_nopie //...')
-          }
-        },
+        }
     ]
     parallel(branches)
   }
