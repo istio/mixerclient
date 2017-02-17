@@ -50,9 +50,13 @@ bool CheckCache::ShouldFlush(const CacheElem& elem) {
   return age >= flush_interval_in_cycle_;
 }
 
-Status CheckCache::Check(const Attributes& attributes,
-                         CheckResponse* response) {
-  string request_signature = GenerateSignature(attributes);
+Status CheckCache::Check(const Attributes& attributes, CheckResponse* response,
+                         std::string* signature) {
+  std::string request_signature = GenerateSignature(attributes);
+  if (signature) {
+    *signature = request_signature;
+  }
+
   std::lock_guard<std::mutex> lock(cache_mutex_);
   CheckLRUCache::ScopedLookup lookup(cache_.get(), request_signature);
 
@@ -75,12 +79,11 @@ Status CheckCache::Check(const Attributes& attributes,
   return Status::OK;
 }
 
-Status CheckCache::CacheResponse(const Attributes& attributes,
+Status CheckCache::CacheResponse(const std::string& request_signature,
                                  const CheckResponse& response) {
   std::lock_guard<std::mutex> lock(cache_mutex_);
 
   if (cache_) {
-    string request_signature = GenerateSignature(attributes);
     CheckLRUCache::ScopedLookup lookup(cache_.get(), request_signature);
 
     int64_t now = SimpleCycleTimer::Now();

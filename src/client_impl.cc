@@ -14,15 +14,23 @@
  */
 #include "src/client_impl.h"
 #include <sstream>
+
 #include "mixer/api/v1/service.pb.h"
 
 using ::istio::mixer::v1::CheckResponse;
 using ::istio::mixer::v1::ReportResponse;
 using ::istio::mixer::v1::QuotaResponse;
 using ::google::protobuf::util::Status;
+using ::google::protobuf::util::error::Code;
 
 namespace istio {
 namespace mixer_client {
+namespace {
+Status ParseCheckResponse(const CheckResponse &response) {
+  return Status(static_cast<Code>(response.result().code()),
+                response.result().message());
+}
+}  // namespace
 
 MixerClientImpl::MixerClientImpl(const MixerClientOptions &options)
     : options_(options) {
@@ -35,17 +43,35 @@ MixerClientImpl::MixerClientImpl(const MixerClientOptions &options)
   check_transport_.reset(new CheckTransport(transport));
   report_transport_.reset(new ReportTransport(transport));
   quota_transport_.reset(new QuotaTransport(transport));
+  check_cache_ =
+      std::unique_ptr<CheckCache>(new CheckCache(options.check_options));
 }
 
-MixerClientImpl::~MixerClientImpl() {}
+MixerClientImpl::~MixerClientImpl() { check_cache_->FlushAll(); }
 
 void MixerClientImpl::Check(const Attributes &attributes, DoneFunc on_done) {
   auto response = new CheckResponse;
-  check_transport_->Send(attributes, response,
-                         [response, on_done](const Status &status) {
-                           delete response;
-                           on_done(status);
-                         });
+  std::string signature;
+  Status status = check_cache_->Check(attributes, response, &signature);
+  if (status.error_code() == Code::NOT_FOUND) {
+    std::shared_ptr<CheckCache> check_cache_copy = check_cache_;
+    check_transport_->Send(
+        attributes, response,
+        [check_cache_copy, signature, response, on_done](const Status &status) {
+          if (status.ok()) {
+            check_cache_copy->CacheResponse(signature, *response);
+            Status response_status = ParseCheckResponse(*response);
+            on_done(response_status);
+          } else {
+            on_done(status);
+          }
+          delete response;
+        });
+    return;
+  }
+  Status response_status = ParseCheckResponse(*response);
+  delete response;
+  on_done(response_status);
 }
 
 void MixerClientImpl::Report(const Attributes &attributes, DoneFunc on_done) {
