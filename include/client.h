@@ -87,8 +87,8 @@ struct Attributes {
     // It is not easy for union to support them.
     std::string str_v;  // for both STRING and BYTES
     std::chrono::time_point<std::chrono::system_clock> time_v;
-    ::google::protobuf::Duration duration;
-    std::map<std::string, std::string> string_map;
+    std::chrono::nanoseconds duration_nanos_v;
+    std::map<std::string, std::string> string_map_v;
   };
 
   std::map<std::string, Value> attributes;

@@ -15,6 +15,7 @@
 #include "src/attribute_context.h"
 #include "google/protobuf/timestamp.pb.h"
 
+using ::google::protobuf::Duration;
 using ::google::protobuf::Map;
 using ::google::protobuf::Timestamp;
 
@@ -37,6 +38,13 @@ Timestamp CreateTimestamp(std::chrono::system_clock::time_point tp) {
   time_stamp.set_seconds(nanos / 1000000000);
   time_stamp.set_nanos(nanos % 1000000000);
   return time_stamp;
+}
+
+Duration CreateDuration(std::chrono::nanoseconds value) {
+  Duration duration;
+  duration.set_seconds(value.count() / 1000000000);
+  duration.set_nanos(value.count() % 1000000000);
+  return duration;
 }
 
 }  // namespace
@@ -98,11 +106,12 @@ void AttributeContext::FillProto(const Attributes& attributes,
             CreateTimestamp(it.second.time_v);
         break;
       case Attributes::Value::ValueType::DURATION:
-        (*pb->mutable_duration_attributes())[index] = it.second.duration;
+        (*pb->mutable_duration_attributes())[index] =
+            CreateDuration(it.second.duration_nanos_v);
         break;
       case Attributes::Value::ValueType::STRING_MAP:
         (*pb->mutable_stringmap_attributes())[index] =
-            CreateStringMap(it.second.string_map);
+            CreateStringMap(it.second.string_map_v);
         break;
     }
   }

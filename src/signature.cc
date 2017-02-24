@@ -57,10 +57,11 @@ string GenerateSignature(const Attributes& attributes) {
                       sizeof(attribute.second.time_v));
         break;
       case Attributes::Value::ValueType::DURATION:
-        hasher.Update(attribute.second.duration.SerializeAsString());
+        hasher.Update(&attribute.second.duration_nanos_v,
+                      sizeof(attribute.second.duration_nanos_v));
         break;
       case Attributes::Value::ValueType::STRING_MAP:
-        for (const auto& it : attribute.second.string_map) {
+        for (const auto& it : attribute.second.string_map_v) {
           hasher.Update(it.first);
           hasher.Update(kDelimiter, kDelimiterLength);
           hasher.Update(it.second);

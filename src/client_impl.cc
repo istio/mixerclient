@@ -98,12 +98,11 @@ std::string Attributes::DebugString() const {
                   .count();
         break;
       case Attributes::Value::ValueType::DURATION:
-        ss << "(DURATION): seconds: " << it.second.duration.seconds()
-           << " nanos: " << it.second.duration.nanos();
+        ss << "(DURATION nanos): " << it.second.duration_nanos_v.count();
         break;
       case Attributes::Value::ValueType::STRING_MAP:
         ss << "(STRING MAP):";
-        for (const auto &map_it : it.second.string_map) {
+        for (const auto &map_it : it.second.string_map_v) {
           ss << std::endl;
           ss << "      " << map_it.first << ": " << map_it.second;
         }

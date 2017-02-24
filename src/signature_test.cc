@@ -73,10 +73,10 @@ class SignatureUtilTest : public ::testing::Test {
     attributes_.attributes[key] = bool_value;
   }
 
-  void AddDuration(const string& key, ::google::protobuf::Duration value) {
+  void AddDuration(const string& key, std::chrono::nanoseconds value) {
     Attributes::Value a_value;
     a_value.type = Attributes::Value::DURATION;
-    a_value.duration = value;
+    a_value.duration_nanos_v = value;
     attributes_.attributes[key] = a_value;
   }
 
@@ -84,7 +84,7 @@ class SignatureUtilTest : public ::testing::Test {
                     std::map<std::string, std::string>&& value) {
     Attributes::Value a_value;
     a_value.type = Attributes::Value::STRING_MAP;
-    a_value.string_map.swap(value);
+    a_value.string_map_v.swap(value);
     attributes_.attributes[key] = a_value;
   }
 
@@ -118,17 +118,16 @@ TEST_F(SignatureUtilTest, Attributes) {
   EXPECT_EQ("f7dd61e1a5881e2492d93ad023ab49a2",
             MD5::DebugString(GenerateSignature(attributes_)));
 
-  ::google::protobuf::Duration duration;
-  duration.set_seconds(12345);
-  duration.set_nanos(6789);
-  AddDuration("duration-key", duration);
-  EXPECT_EQ("6c2f325e3b1923b5d6b8654e0887ecca",
+  std::chrono::seconds secs(5);
+  AddDuration("duration-key",
+              std::chrono::duration_cast<std::chrono::nanoseconds>(secs));
+  EXPECT_EQ("13ae11ea2bea216da46688cd9698645e",
             MD5::DebugString(GenerateSignature(attributes_)));
 
   std::map<std::string, std::string> string_map = {{"key1", "value1"},
                                                    {"key2", "value2"}};
   AddStringMap("string-map-key", std::move(string_map));
-  EXPECT_EQ("906bc4622cc9d62137548630a9ac88de",
+  EXPECT_EQ("c861f02e251c896513eb0f7c97aa2ce7",
             MD5::DebugString(GenerateSignature(attributes_)));
 }
 
