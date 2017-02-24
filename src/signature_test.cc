@@ -73,6 +73,21 @@ class SignatureUtilTest : public ::testing::Test {
     attributes_.attributes[key] = bool_value;
   }
 
+  void AddDuration(const string& key, ::google::protobuf::Duration value) {
+    Attributes::Value a_value;
+    a_value.type = Attributes::Value::DURATION;
+    a_value.duration = value;
+    attributes_.attributes[key] = a_value;
+  }
+
+  void AddStringMap(const string& key,
+                    std::map<std::string, std::string>&& value) {
+    Attributes::Value a_value;
+    a_value.type = Attributes::Value::STRING_MAP;
+    a_value.string_map.swap(value);
+    attributes_.attributes[key] = a_value;
+  }
+
   Attributes attributes_;
 };
 
@@ -101,6 +116,19 @@ TEST_F(SignatureUtilTest, Attributes) {
   std::chrono::time_point<std::chrono::system_clock> time_point;
   AddTime("time-key", time_point);
   EXPECT_EQ("f7dd61e1a5881e2492d93ad023ab49a2",
+            MD5::DebugString(GenerateSignature(attributes_)));
+
+  ::google::protobuf::Duration duration;
+  duration.set_seconds(12345);
+  duration.set_nanos(6789);
+  AddDuration("duration-key", duration);
+  EXPECT_EQ("f1f4b0df6705fd9caa30b41840cc3569",
+            MD5::DebugString(GenerateSignature(attributes_)));
+
+  std::map<std::string, std::string> string_map = {{"key1", "value1"},
+                                                   {"key2", "value2"}};
+  AddStringMap("string-map-key", std::move(string_map));
+  EXPECT_EQ("b1a34233b46b99ddfbc76c92c7569967",
             MD5::DebugString(GenerateSignature(attributes_)));
 }
 

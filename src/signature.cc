@@ -33,6 +33,8 @@ string GenerateSignature(const Attributes& attributes) {
   for (const auto& attribute : attributes.attributes) {
     hasher.Update(attribute.first);
     hasher.Update(kDelimiter, kDelimiterLength);
+    int64_t duration_seconds;
+    int32_t duration_nanos;
     switch (attribute.second.type) {
       case Attributes::Value::ValueType::STRING:
         hasher.Update(attribute.second.str_v);
@@ -56,8 +58,19 @@ string GenerateSignature(const Attributes& attributes) {
         hasher.Update(&attribute.second.time_v,
                       sizeof(attribute.second.time_v));
         break;
-      // Not to calculate signature based on STRING_MAP type.
-      default:
+      case Attributes::Value::ValueType::DURATION:
+        duration_seconds = attribute.second.duration.seconds();
+        hasher.Update(&duration_seconds, sizeof(duration_seconds));
+        duration_nanos = attribute.second.duration.nanos();
+        hasher.Update(&duration_nanos, sizeof(duration_nanos));
+        break;
+      case Attributes::Value::ValueType::STRING_MAP:
+        for (const auto& it : attribute.second.string_map) {
+          hasher.Update(it.first);
+          hasher.Update(kDelimiter, kDelimiterLength);
+          hasher.Update(it.second);
+          hasher.Update(kDelimiter, kDelimiterLength);
+        }
         break;
     }
     hasher.Update(kDelimiter, kDelimiterLength);

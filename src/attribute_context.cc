@@ -97,6 +97,9 @@ void AttributeContext::FillProto(const Attributes& attributes,
         (*pb->mutable_timestamp_attributes())[index] =
             CreateTimestamp(it.second.time_v);
         break;
+      case Attributes::Value::ValueType::DURATION:
+        (*pb->mutable_duration_attributes())[index] = it.second.duration;
+        break;
       case Attributes::Value::ValueType::STRING_MAP:
         (*pb->mutable_stringmap_attributes())[index] =
             CreateStringMap(it.second.string_map);
