@@ -122,13 +122,13 @@ TEST_F(SignatureUtilTest, Attributes) {
   duration.set_seconds(12345);
   duration.set_nanos(6789);
   AddDuration("duration-key", duration);
-  EXPECT_EQ("f1f4b0df6705fd9caa30b41840cc3569",
+  EXPECT_EQ("6c2f325e3b1923b5d6b8654e0887ecca",
             MD5::DebugString(GenerateSignature(attributes_)));
 
   std::map<std::string, std::string> string_map = {{"key1", "value1"},
                                                    {"key2", "value2"}};
   AddStringMap("string-map-key", std::move(string_map));
-  EXPECT_EQ("b1a34233b46b99ddfbc76c92c7569967",
+  EXPECT_EQ("906bc4622cc9d62137548630a9ac88de",
             MD5::DebugString(GenerateSignature(attributes_)));
 }
 
