@@ -41,29 +41,41 @@ Timestamp CreateTimestamp(std::chrono::system_clock::time_point tp) {
 
 }  // namespace
 
+int AttributeContext::GetNameIndex(const std::string& name) {
+  const auto& dict_it = dict_map_.find(name);
+  int index;
+  if (dict_it == dict_map_.end()) {
+    index = dict_map_.size() + 1;
+    // Assume attribute names are a fixed name set.
+    // so not need to remove names from dictionary.
+    dict_map_[name] = index;
+  } else {
+    index = dict_it->second;
+  }
+  return index;
+}
+
+::istio::mixer::v1::StringMap AttributeContext::CreateStringMap(
+    const std::map<std::string, std::string>& string_map) {
+  ::istio::mixer::v1::StringMap map_msg;
+  auto* map_pb = map_msg.mutable_map();
+  for (const auto& it : string_map) {
+    (*map_pb)[GetNameIndex(it.first)] = it.second;
+  }
+  return map_msg;
+}
+
 void AttributeContext::FillProto(const Attributes& attributes,
                                  ::istio::mixer::v1::Attributes* pb) {
   // TODO build context use kContextSet to reduce attributes.
 
+  size_t old_dict_size = dict_map_.size();
+
   // Fill attributes.
-  int next_dict_index = dict_map_.size();
-  bool dict_changed = false;
   for (const auto& it : attributes.attributes) {
     const std::string& name = it.first;
 
-    // Find index for the name.
-    int index;
-    const auto& dict_it = dict_map_.find(name);
-    if (dict_it == dict_map_.end()) {
-      dict_changed = true;
-      index = ++next_dict_index;
-      // Assume attribute names are a fixed name set.
-      // so not need to remove names from dictionary.
-      dict_map_[name] = index;
-    } else {
-      index = dict_it->second;
-    }
-
+    int index = GetNameIndex(name);
     // Fill the attribute to proper map.
     switch (it.second.type) {
       case Attributes::Value::ValueType::STRING:
@@ -85,10 +97,15 @@ void AttributeContext::FillProto(const Attributes& attributes,
         (*pb->mutable_timestamp_attributes())[index] =
             CreateTimestamp(it.second.time_v);
         break;
+      case Attributes::Value::ValueType::STRING_MAP:
+        (*pb->mutable_stringmap_attributes())[index] =
+            CreateStringMap(it.second.string_map);
+        break;
     }
   }
 
-  if (dict_changed) {
+  // Send the dictionary if it is changed.
+  if (old_dict_size != dict_map_.size()) {
     Map<int32_t, std::string>* dict = pb->mutable_dictionary();
     for (const auto& it : dict_map_) {
       (*dict)[it.second] = it.first;

@@ -97,6 +97,13 @@ std::string Attributes::DebugString() const {
                   it.second.time_v.time_since_epoch())
                   .count();
         break;
+      case Attributes::Value::ValueType::STRING_MAP:
+        ss << "(STRING MAP):";
+        for (const auto &map_it : it.second.string_map) {
+          ss << std::endl;
+          ss << "      " << map_it.first << ": " << map_it.second;
+        }
+        break;
     }
     ss << std::endl;
   }

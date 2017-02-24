@@ -56,6 +56,9 @@ string GenerateSignature(const Attributes& attributes) {
         hasher.Update(&attribute.second.time_v,
                       sizeof(attribute.second.time_v));
         break;
+      // Not to calculate signature based on STRING_MAP type.
+      default:
+        break;
     }
     hasher.Update(kDelimiter, kDelimiterLength);
   }
