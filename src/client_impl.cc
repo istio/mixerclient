@@ -14,7 +14,6 @@
  */
 #include "src/client_impl.h"
 #include <sstream>
-#include "mixer/api/v1/service.pb.h"
 
 using ::istio::mixer::v1::CheckResponse;
 using ::istio::mixer::v1::ReportResponse;
