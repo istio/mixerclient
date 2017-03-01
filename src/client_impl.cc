@@ -24,10 +24,8 @@ using ::google::protobuf::util::error::Code;
 namespace istio {
 namespace mixer_client {
 namespace {
-template <class ResponseType>
-Status ParseResponse(const ResponseType &response) {
-  return Status(static_cast<Code>(response.result().code()),
-                response.result().message());
+Status ConvertRpcStatus(const ::google::rpc::Status &status) {
+  return Status(static_cast<Code>(status.code()), status.message());
 }
 }  // namespace
 
@@ -51,7 +49,7 @@ void MixerClientImpl::Check(const Attributes &attributes, DoneFunc on_done) {
   check_transport_->Send(attributes, response,
                          [response, on_done](const Status &status) {
                            if (status.ok()) {
-                             on_done(ParseResponse(*response));
+                             on_done(ConvertRpcStatus(response->result()));
                            } else {
                              on_done(status);
                            }
@@ -64,7 +62,7 @@ void MixerClientImpl::Report(const Attributes &attributes, DoneFunc on_done) {
   report_transport_->Send(attributes, response,
                           [response, on_done](const Status &status) {
                             if (status.ok()) {
-                              on_done(ParseResponse(*response));
+                              on_done(ConvertRpcStatus(response->result()));
                             } else {
                               on_done(status);
                             }
@@ -77,7 +75,7 @@ void MixerClientImpl::Quota(const Attributes &attributes, DoneFunc on_done) {
   quota_transport_->Send(attributes, response,
                          [response, on_done](const Status &status) {
                            if (status.ok()) {
-                             on_done(ParseResponse(*response));
+                             on_done(ConvertRpcStatus(response->result()));
                            } else {
                              on_done(status);
                            }
