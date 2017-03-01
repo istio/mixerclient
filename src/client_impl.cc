@@ -19,9 +19,17 @@ using ::istio::mixer::v1::CheckResponse;
 using ::istio::mixer::v1::ReportResponse;
 using ::istio::mixer::v1::QuotaResponse;
 using ::google::protobuf::util::Status;
+using ::google::protobuf::util::error::Code;
 
 namespace istio {
 namespace mixer_client {
+namespace {
+template <class ResponseType>
+Status ParseResponse(const ResponseType &response) {
+  return Status(static_cast<Code>(response.result().code()),
+                response.result().message());
+}
+}  // namespace
 
 MixerClientImpl::MixerClientImpl(const MixerClientOptions &options)
     : options_(options) {
@@ -42,8 +50,12 @@ void MixerClientImpl::Check(const Attributes &attributes, DoneFunc on_done) {
   auto response = new CheckResponse;
   check_transport_->Send(attributes, response,
                          [response, on_done](const Status &status) {
+                           if (status.ok()) {
+                             on_done(ParseResponse(*response));
+                           } else {
+                             on_done(status);
+                           }
                            delete response;
-                           on_done(status);
                          });
 }
 
@@ -51,8 +63,12 @@ void MixerClientImpl::Report(const Attributes &attributes, DoneFunc on_done) {
   auto response = new ReportResponse;
   report_transport_->Send(attributes, response,
                           [response, on_done](const Status &status) {
+                            if (status.ok()) {
+                              on_done(ParseResponse(*response));
+                            } else {
+                              on_done(status);
+                            }
                             delete response;
-                            on_done(status);
                           });
 }
 
@@ -60,8 +76,12 @@ void MixerClientImpl::Quota(const Attributes &attributes, DoneFunc on_done) {
   auto response = new QuotaResponse;
   quota_transport_->Send(attributes, response,
                          [response, on_done](const Status &status) {
+                           if (status.ok()) {
+                             on_done(ParseResponse(*response));
+                           } else {
+                             on_done(status);
+                           }
                            delete response;
-                           on_done(status);
                          });
 }
 
