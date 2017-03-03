@@ -103,8 +103,6 @@ void AttributeContext::FillProto(const Attributes& attributes,
 
   size_t old_dict_size = dict_map_.size();
 
-  // Always use attribute_context 1
-  pb->set_attribute_context(1);
   context_.UpdateStart();
 
   // Fill attributes.
