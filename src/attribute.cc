@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-#include <sstream>
 #include "include/attribute.h"
+#include <sstream>
 
 namespace istio {
 namespace mixer_client {
 
-bool Attributes::Value::operator==(const Attributes::Value& v) const {
+bool Attributes::Value::operator==(const Attributes::Value &v) const {
   if (type != v.type) {
     return false;
   }
