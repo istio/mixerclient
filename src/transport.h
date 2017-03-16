@@ -38,6 +38,7 @@ class Transport : public AttributeConverter<RequestType> {
     stream_.Call(attributes, response, on_done);
   }
 
+ private:
   // Convert to a protobuf
   // This is called by stream_.Call so it is within the mutex lock.
   void FillProto(StreamID stream_id, const Attributes& attributes,
@@ -51,7 +52,6 @@ class Transport : public AttributeConverter<RequestType> {
     request->set_request_index(attribute_context_->IncRequestIndex());
   }
 
- private:
   // A stream transport
   StreamTransport<RequestType, ResponseType> stream_;
   // Mutex to sync-up stream_.Call, only one at time.
