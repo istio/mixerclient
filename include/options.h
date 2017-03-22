@@ -58,7 +58,7 @@ struct CheckOptions {
   const int expiration_ms;
 
   // Only the attributes in this set are used to caclculate cache key.
-  // If empty,  cache is disabled.
+  // If empty, check cache is disabled.
   std::set<std::string> cache_keys;
 };
 
