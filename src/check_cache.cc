@@ -53,7 +53,7 @@ bool CheckCache::ShouldFlush(const CacheElem& elem) {
 Status CheckCache::Check(const Attributes& attributes, CheckResponse* response,
                          std::string* signature) {
   if (!cache_) {
-    // By returning NO_FOUND, caller will send request to server.
+    // By returning NOT_FOUND, caller will send request to server.
     return Status(Code::NOT_FOUND, "");
   }
 
