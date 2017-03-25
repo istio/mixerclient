@@ -43,7 +43,7 @@ class SubKeySet {
 
 // A class to handle cache key set
 // A std::set will not work for string map sub keys.
-// For AtringMap attruibute,
+// For a StringMap attruibute,
 // If cache key is "attribute.key", all values will be used.
 // If cache key is "attribute.key/map.key", only the map key is used.
 // If both format exists, the whole map will be used.
