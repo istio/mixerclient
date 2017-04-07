@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef MIXER_CLIENT_UTILS_TIME_BASED_COUNTER_H_
-#define MIXER_CLIENT_UTILS_TIME_BASED_COUNTER_H_
+#ifndef MIXER_CLIENT_PREFETCH_TIME_BASED_COUNTER_H_
+#define MIXER_CLIENT_PREFETCH_TIME_BASED_COUNTER_H_
 
 #include <chrono>
 #include <vector>
@@ -58,4 +58,4 @@ class TimeBasedCounter {
 }  // namespace mixer_client
 }  // namespace istio
 
-#endif  // MIXER_CLIENT_CLIENT_UTILS_TIME_BASED_COUNTER_H_
+#endif  // MIXER_CLIENT_CLIENT_PREFETCH_TIME_BASED_COUNTER_H_
