@@ -36,8 +36,8 @@ class TimeBasedCounter {
   // But for easy unit_test, pass the time in.
   // The input time should be always increasing.
 
-  // Add a count
-  void Inc(Tick t);
+  // Add n to the counter.
+  void Inc(int n, Tick t);
 
   // Get the count.
   int Count(Tick t);
