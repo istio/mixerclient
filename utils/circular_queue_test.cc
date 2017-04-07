@@ -47,7 +47,7 @@ TEST(CircularQueueTest, TestNotResize) {
 
 TEST(CircularQueueTest, TestResize1) {
   CircularQueue<int> q(3);
-  for (int i=1; i<6; i++) {
+  for (int i = 1; i < 6; i++) {
     q.Push(i);
   }
   ASSERT_RESULT(q, {1, 2, 3, 4, 5});
@@ -63,7 +63,7 @@ TEST(CircularQueueTest, TestResize2) {
   q.Pop();
   q.Pop();
 
-  for (int i=4; i<10; i++) {
+  for (int i = 4; i < 10; i++) {
     q.Push(i);
   }
   ASSERT_RESULT(q, {3, 4, 5, 6, 7, 8, 9});
