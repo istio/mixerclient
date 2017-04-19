@@ -20,8 +20,8 @@ using namespace std::chrono;
 namespace istio {
 namespace mixer_client {
 
-TimeBasedCounter::TimeBasedCounter(int window_size,
-                                   milliseconds duration, Tick t)
+TimeBasedCounter::TimeBasedCounter(int window_size, milliseconds duration,
+                                   Tick t)
     : slots_(window_size),
       slot_duration_(duration / window_size),
       count_(0),
