@@ -20,8 +20,7 @@ namespace istio {
 namespace mixer_client {
 namespace {
 
-void ASSERT_RESULT(CircularQueue<int>& q,
-                   const std::vector<int>& expected) {
+void ASSERT_RESULT(CircularQueue<int>& q, const std::vector<int>& expected) {
   std::vector<int> v;
   q.Iterate([&](int& i) -> bool {
     v.push_back(i);
