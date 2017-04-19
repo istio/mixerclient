@@ -304,43 +304,66 @@ TEST_F(QuotaPrefetchTest, TestBigRollingWindow) {
 TEST_F(QuotaPrefetchTest, TestSmallRollingWindow) {
   TestSingleClient(true,  // use rolling window,
                    kPerSecondWindow,
-                   {.margin1 = 0.17, .margin2 = 0.08, .margin3 = 0.24});
+                   {.margin1 = 0.26, .margin2 = 0.23, .margin3 = 0.25});
 }
 
 TEST_F(QuotaPrefetchTest, TestBigTimeBased) {
   TestSingleClient(false,  // use time based.
                    kPerMinuteWindow,
-                   {.margin1 = 0.0, .margin2 = 0.0, .margin3 = 0.06});
+                   {.margin1 = 0.0, .margin2 = 0.0, .margin3 = 0.08});
 }
 
 TEST_F(QuotaPrefetchTest, TestSmallTimeBased) {
   TestSingleClient(false,  // use time based
                    kPerSecondWindow,
-                   {.margin1 = 0.0, .margin2 = 0.005, .margin3 = 0.045});
+                   {.margin1 = 0.0, .margin2 = 0.0, .margin3 = 0.035});
 }
 
 TEST_F(QuotaPrefetchTest, TestTwoClientBigRollingWindow) {
   TestTwoClients(true,  // use rolling window,
                  kPerMinuteWindow,
-                 {.margin1 = 0.0001, .margin2 = 0.01, .margin3 = 0.0018});
+                 {.margin1 = 0.0001, .margin2 = 0.007, .margin3 = 0.0036});
 }
 
 TEST_F(QuotaPrefetchTest, TestTwoClientSmallRollingWindow) {
   TestTwoClients(true,  // use rolling window,
                  kPerSecondWindow,
-                 {.margin1 = 0.29, .margin2 = 0.25, .margin3 = 0.25});
+                 {.margin1 = 0.28, .margin2 = 0.35, .margin3 = 0.22});
 }
 
 TEST_F(QuotaPrefetchTest, TestTwoClientBigTimeBased) {
   TestTwoClients(false,  // use time based
                  kPerMinuteWindow,
-                 {.margin1 = 0.0001, .margin2 = 0.0, .margin3 = 0.022});
+                 {.margin1 = 0.0001, .margin2 = 0.0, .margin3 = 0.035});
 }
 
 TEST_F(QuotaPrefetchTest, TestTwoClientSmallTimeBased) {
   TestTwoClients(false,  // use time based
                  kPerSecondWindow,
-                 {.margin1 = 0.04, .margin2 = 0.095, .margin3 = 0.09});
+                 {.margin1 = 0.05, .margin2 = 0.03, .margin3 = 0.07});
+}
+
+TEST_F(QuotaPrefetchTest, TestNotEnoughAmount) {
+  Tick t;
+  QuotaPrefetch::Options options;
+  auto client = QuotaPrefetch::Create(GetTransportFunc(), options, t);
+  rate_server_ =
+      std::unique_ptr<RateServer>(new RollingWindow(5, milliseconds(1000), t));
+
+  // First one is always true, use it to trigger prefetch
+  EXPECT_TRUE(client->Check(1, t));
+  // Alloc response is called OnTimer.
+  delay_.OnTimer(t);
+
+  // Only 4 tokens remain, so asking for 5 should fail.
+  t += milliseconds(1);
+  EXPECT_FALSE(client->Check(5, t));
+  delay_.OnTimer(t);
+
+  // Since last one fails, still has 4 tokens.
+  t += milliseconds(1);
+  EXPECT_TRUE(client->Check(4, t));
+  delay_.OnTimer(t);
 }
 
 }  // namespace

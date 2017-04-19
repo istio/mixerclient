@@ -88,6 +88,7 @@ class QuotaPrefetchImpl : public QuotaPrefetch {
       : queue_(kInitQueueSize),
         counter_(kTimeBasedWindowSize, options.predict_window, t),
         mode_(OPEN),
+        inflight_count_(0),
         transport_(transport),
         options_(options),
         next_slot_id_(0) {}
@@ -124,6 +125,8 @@ class QuotaPrefetchImpl : public QuotaPrefetch {
   Mode mode_;
   // Last prefetch time.
   Tick last_prefetch_time_;
+  // inflight request count;
+  int inflight_count_;
   // The transport to allocate quota.
   TransportFunc transport_;
   // Save the options.
@@ -156,15 +159,16 @@ int QuotaPrefetchImpl::CheckMinAvailable(int min, Tick t) {
 }
 
 void QuotaPrefetchImpl::AttemptPrefetch(int amount, Tick t) {
-  if (mode_ == CLOSE && (duration_cast<milliseconds>(t - last_prefetch_time_) <
-                         options_.close_wait_window)) {
+  if (mode_ == CLOSE && (inflight_count_ > 0 ||
+                         (duration_cast<milliseconds>(t - last_prefetch_time_) <
+                          options_.close_wait_window))) {
     return;
   }
 
   int avail = CountAvailable(t);
   int pass_count = counter_.Count(t);
   int desired = std::max(pass_count, options_.min_prefetch_amount);
-  if (avail < desired / 2 || avail < amount) {
+  if ((avail < desired / 2 && inflight_count_ == 0) || avail < amount) {
     bool use_not_granted = (avail == 0 && mode_ == OPEN);
     Prefetch(std::max(amount, desired), use_not_granted, t);
   }
@@ -180,6 +184,7 @@ void QuotaPrefetchImpl::Prefetch(int req_amount, bool use_not_granted, Tick t) {
   LOG(t) << "Prefetch: " << req_amount << ", id: " << slot_id << std::endl;
 
   last_prefetch_time_ = t;
+  ++inflight_count_;
   transport_(req_amount,
              [this, slot_id, req_amount](int resp_amount,
                                          milliseconds expiration, Tick t1) {
@@ -233,6 +238,7 @@ void QuotaPrefetchImpl::OnResponse(SlotId slot_id, int req_amount,
                                    int resp_amount, milliseconds expiration,
                                    Tick t) {
   std::lock_guard<std::mutex> lock(mutex_);
+  --inflight_count_;
 
   LOG(t) << "OnResponse: req:" << req_amount << ", resp: " << resp_amount
          << ", expire: " << expiration.count() << ", id: " << slot_id
