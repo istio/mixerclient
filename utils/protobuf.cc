@@ -29,8 +29,7 @@ namespace mixer_client {
 // Convert timestamp from time_point to Timestamp
 Timestamp CreateTimestamp(system_clock::time_point tp) {
   Timestamp time_stamp;
-  long long nanos = duration_cast<nanoseconds>(tp.time_since_epoch())
-                        .count();
+  long long nanos = duration_cast<nanoseconds>(tp.time_since_epoch()).count();
 
   time_stamp.set_seconds(nanos / 1000000000);
   time_stamp.set_nanos(nanos % 1000000000);

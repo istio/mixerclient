@@ -66,16 +66,14 @@ struct CheckOptions {
 // Options controlling quota behavior.
 struct QuotaOptions {
   // Default constructor.
-  QuotaOptions()
-      : num_entries(10000), expiration_ms(600000) {}
+  QuotaOptions() : num_entries(10000), expiration_ms(600000) {}
 
   // Constructor.
   // cache_entries is the maximum number of cache entries that can be kept in
   // the cache. Cache is disabled when cache_entries <= 0.
   // expiration_ms is the maximum milliseconds an idle cached quota is removed.
   QuotaOptions(int cache_entries, int expiration_ms)
-      : num_entries(cache_entries),
-        expiration_ms(expiration_ms) {}
+      : num_entries(cache_entries), expiration_ms(expiration_ms) {}
 
   // Maximum number of cache entries kept in the cache.
   // Set to 0 will disable caching.
