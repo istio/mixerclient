@@ -116,18 +116,21 @@ TEST_F(QuotaCacheTest, TestCacheKeyWithDifferentNames) {
   // Use prefetch.
   // Expect Send to be called twice, different names should use
   // different cache items.
+  std::vector<DoneFunc> on_done_vect;
   EXPECT_CALL(mock_transport_, Send(_, _, _))
       .WillOnce(Invoke([&](const Attributes& request, QuotaResponse* response,
                            DoneFunc on_done) {
         EXPECT_EQ(GetQuotaName(request), "Name1");
         // prefetch amount should be > 1
         EXPECT_GT(GetQuotaAmount(request), 1);
+        on_done_vect.push_back(on_done);
       }))
       .WillOnce(Invoke([&](const Attributes& request, QuotaResponse* response,
                            DoneFunc on_done) {
         EXPECT_EQ(GetQuotaName(request), "Name2");
         // prefetch amount should be > 1
         EXPECT_GT(GetQuotaAmount(request), 1);
+        on_done_vect.push_back(on_done);
       }));
 
   request_.attributes[Attributes::kQuotaName] =
@@ -143,18 +146,25 @@ TEST_F(QuotaCacheTest, TestCacheKeyWithDifferentNames) {
     // Prefetch request is sucesss
     EXPECT_OK(status);
   });
+
+  // Call all on_done to clean up the memory.
+  for (const auto& on_done : on_done_vect) {
+    on_done(Status::OK);
+  }
 }
 
 TEST_F(QuotaCacheTest, TestCacheKeyWithDifferentAmounts) {
   // Use prefetch.
   // Expect Send to be called once, same name different amounts should
   // share same cache.
+  std::vector<DoneFunc> on_done_vect;
   EXPECT_CALL(mock_transport_, Send(_, _, _))
       .WillOnce(Invoke([&](const Attributes& request, QuotaResponse* response,
                            DoneFunc on_done) {
         EXPECT_EQ(GetQuotaName(request), "RequestCount");
         // prefetch amount should be > 1
         EXPECT_GT(GetQuotaAmount(request), 1);
+        on_done_vect.push_back(on_done);
       }));
 
   request_.attributes[Attributes::kQuotaAmount] = Attributes::Int64Value(1);
@@ -168,6 +178,11 @@ TEST_F(QuotaCacheTest, TestCacheKeyWithDifferentAmounts) {
     // Prefetch request is sucesss
     EXPECT_OK(status);
   });
+
+  // Call all on_done to clean up the memory.
+  for (const auto& on_done : on_done_vect) {
+    on_done(Status::OK);
+  }
 }
 
 }  // namespace
