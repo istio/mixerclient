@@ -45,7 +45,6 @@ class GrpcStream final : public WriteInterface<RequestType> {
     std::lock_guard<std::mutex> lock(write_mutex_);
     if (!stream_->Write(request)) {
       GOOGLE_LOG(INFO) << "Stream Write failed: half close";
-      stream_->WritesDone();
       write_closed_ = true;
     }
   }
