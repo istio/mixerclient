@@ -31,6 +31,7 @@ class AttributeConverter {
 
   void Convert(const Attributes& attributes,
                ::istio::mixer::v1::Attributes* attributes_pb) const;
+
  private:
   std::unordered_map<std::string, int> global_dict_;
 };

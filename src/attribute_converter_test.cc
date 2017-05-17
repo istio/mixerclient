@@ -29,6 +29,7 @@ namespace mixer_client {
 namespace {
 
 const char kAttributes[] = R"(
+words: "bool-key"
 words: "bytes-key"
 words: "double-key"
 words: "duration-key"

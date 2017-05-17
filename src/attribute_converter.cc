@@ -21,14 +21,10 @@ namespace mixer_client {
 namespace {
 
 // Return global dictionary index.
-int GlobalDictIndex(int idx) {
-  return idx;
-}
+int GlobalDictIndex(int idx) { return idx; }
 
 // Return per message dictionary index.
-int MessageDictIndex(int idx) {
-  return -(idx + 1);
-}
+int MessageDictIndex(int idx) { return -(idx + 1); }
 
 // Per message dictionary.
 class MessageDictionary {
