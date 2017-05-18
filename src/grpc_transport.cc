@@ -56,7 +56,10 @@ class GrpcStream final : public WriteInterface<RequestType> {
     WriteQueuePush(nullptr);
   }
 
-  bool is_write_closed() const override { return write_closed_; }
+  bool is_write_closed() const override {
+    std::lock_guard<std::mutex> lock(write_closed_mutex_);
+    return write_closed_;
+  }
 
  private:
   // The worker loop to read response messages.
@@ -70,7 +73,7 @@ class GrpcStream final : public WriteInterface<RequestType> {
                      << status.error_message();
 
     // Notify Write thread to quit.
-    write_closed_ = true;
+    set_write_closed();
     WriteQueuePush(nullptr);
 
     // Convert grpc status to protobuf status.
@@ -81,13 +84,13 @@ class GrpcStream final : public WriteInterface<RequestType> {
   }
 
   void WriteQueuePush(RequestType* request) {
-    std::unique_lock<std::mutex> lk(write_mutex_);
+    std::unique_lock<std::mutex> lk(write_queue_mutex_);
     write_queue_.emplace(request);
     cv_.notify_one();
   }
 
   std::unique_ptr<RequestType> WriteQueuePop() {
-    std::unique_lock<std::mutex> lk(write_mutex_);
+    std::unique_lock<std::mutex> lk(write_queue_mutex_);
     while (write_queue_.empty()) {
       cv_.wait(lk);
     }
@@ -96,19 +99,24 @@ class GrpcStream final : public WriteInterface<RequestType> {
     return std::move(ret);
   }
 
+  void set_write_closed() {
+    std::lock_guard<std::mutex> lock(write_closed_mutex_);
+    write_closed_ = true;
+  }
+
   // The worker loop to write request message.
   void WriteMainLoop() {
     while (true) {
       auto request = WriteQueuePop();
       if (!request) {
-        if (!write_closed_) {
+        if (!is_write_closed()) {
           stream_->WritesDone();
-          write_closed_ = true;
+          set_write_closed();
         }
         break;
       }
       if (!stream_->Write(*request)) {
-        write_closed_ = true;
+        set_write_closed();
         break;
       }
     }
@@ -116,14 +124,18 @@ class GrpcStream final : public WriteInterface<RequestType> {
 
   // The client context.
   ::grpc::ClientContext context_;
+
   // The reader writer stream.
   StreamPtr stream_;
   // The reader interface from caller.
   ReadInterface<ResponseType>* reader_;
+
   // Indicates if write is closed.
+  mutable std::mutex write_closed_mutex_;
   bool write_closed_;
+
   // Mutex to protect write queue.
-  std::mutex write_mutex_;
+  std::mutex write_queue_mutex_;
   // condition to wait for write_queue.
   std::condition_variable cv_;
   // a queue to store pending queue for write
