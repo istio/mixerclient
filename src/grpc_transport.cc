@@ -96,7 +96,7 @@ class GrpcStream final : public WriteInterface<RequestType> {
     }
     auto ret = std::move(write_queue_.front());
     write_queue_.pop();
-    return std::move(ret);
+    return ret;
   }
 
   void set_write_closed() {
