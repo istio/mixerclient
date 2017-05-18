@@ -82,24 +82,24 @@ class GrpcStream final : public WriteInterface<RequestType> {
 
   void WriteQueuePush(RequestType* request) {
     std::unique_lock<std::mutex> lk(write_mutex_);
-    write_queue_.push(request);
+    write_queue_.emplace(request);
     cv_.notify_one();
   }
 
-  RequestType* WriteQueuePop() {
+  std::unique_ptr<RequestType> WriteQueuePop() {
     std::unique_lock<std::mutex> lk(write_mutex_);
     while (write_queue_.empty()) {
       cv_.wait(lk);
     }
-    RequestType* ret = write_queue_.front();
+    auto ret = std::move(write_queue_.front());
     write_queue_.pop();
-    return ret;
+    return std::move(ret);
   }
 
   // The worker loop to write request message.
   void WriteMainLoop() {
     while (true) {
-      RequestType* request = WriteQueuePop();
+      auto request = WriteQueuePop();
       if (!request) {
         if (!write_closed_) {
           stream_->WritesDone();
@@ -107,9 +107,7 @@ class GrpcStream final : public WriteInterface<RequestType> {
         }
         break;
       }
-      bool ret = stream_->Write(*request);
-      delete request;
-      if (!ret) {
+      if (!stream_->Write(*request)) {
         write_closed_ = true;
         break;
       }
@@ -129,7 +127,7 @@ class GrpcStream final : public WriteInterface<RequestType> {
   // condition to wait for write_queue.
   std::condition_variable cv_;
   // a queue to store pending queue for write
-  std::queue<RequestType*> write_queue_;
+  std::queue<std::unique_ptr<RequestType>> write_queue_;
 };
 
 typedef GrpcStream<::istio::mixer::v1::CheckRequest,
