@@ -19,6 +19,7 @@
 #include <mutex>
 #include "include/client.h"
 #include "src/attribute_converter.h"
+#include "utils/proto_pool.h"
 
 namespace istio {
 namespace mixer_client {
@@ -152,12 +153,13 @@ class StreamTransport {
       // After the OnClose() is released, they will be released.
       reader->SetOnCloseCallback([reader, writer]() {});
     }
-    RequestType request;
+    auto request = proto_pool_.Alloc();
     // Cast the writer raw pointer as StreamID.
     converter_->FillProto(reinterpret_cast<StreamID>(writer.get()), attributes,
-                          &request);
-    reader->AddRequest(request.request_index(), response, on_done);
-    writer->Write(request);
+                          request.get());
+    reader->AddRequest(request->request_index(), response, on_done);
+    writer->Write(*request);
+    proto_pool_.Free(std::move(request));
   }
 
  private:
@@ -171,6 +173,8 @@ class StreamTransport {
   // The writer object for current stream.
   // The object is owned by Reader OnClose callback function.
   std::weak_ptr<WriteInterface<RequestType>> writer_;
+  // A pool to reuse protobuf
+  ProtoPool<RequestType> proto_pool_;
 };
 
 }  // namespace mixer_client

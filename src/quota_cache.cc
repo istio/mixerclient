@@ -25,9 +25,9 @@ using ::google::protobuf::util::error::Code;
 namespace istio {
 namespace mixer_client {
 
-QuotaCache::CacheElem::CacheElem(const Attributes& request,
+QuotaCache::CacheElem::CacheElem(QuotaCache* cache, const Attributes& request,
                                  QuotaTransport* transport)
-    : request_(request), transport_(transport) {
+    : cache_(cache), request_(request), transport_(transport) {
   prefetch_ = QuotaPrefetch::Create(
       [this](int amount, QuotaPrefetch::DoneFunc fn, QuotaPrefetch::Tick t) {
         Alloc(amount, fn);
@@ -41,19 +41,20 @@ QuotaCache::CacheElem::CacheElem(const Attributes& request,
 }
 
 void QuotaCache::CacheElem::Alloc(int amount, QuotaPrefetch::DoneFunc fn) {
-  auto response = new QuotaResponse;
+  auto response = cache_->proto_pool_.Alloc().release();
   request_.attributes[Attributes::kQuotaAmount] =
       Attributes::Int64Value(amount);
-  transport_->Send(request_, response, [response, fn](const Status& status) {
-    int amount = -1;
-    milliseconds expire;
-    if (status.ok()) {
-      amount = response->amount();
-      expire = ToMilliseonds(response->expiration());
-    }
-    delete response;
-    fn(amount, expire, system_clock::now());
-  });
+  transport_->Send(
+      request_, response, [this, response, fn](const Status& status) {
+        int amount = -1;
+        milliseconds expire;
+        if (status.ok()) {
+          amount = response->amount();
+          expire = ToMilliseonds(response->expiration());
+        }
+        cache_->proto_pool_.Free(std::unique_ptr<QuotaResponse>(response));
+        fn(amount, expire, system_clock::now());
+      });
 }
 
 bool QuotaCache::CacheElem::Quota(const Attributes& request) {
@@ -105,17 +106,17 @@ void QuotaCache::Quota(const Attributes& request, DoneFunc on_done) {
   }
 
   if (!cache_) {
-    auto response = new QuotaResponse;
-    transport_->Send(request, response,
-                     [response, on_done](const Status& status) {
-                       if (status.ok()) {
-                         on_done(ConvertRpcStatus(response->result()));
-                       } else {
-                         // Always use network fail open policy.
-                         on_done(Status::OK);
-                       }
-                       delete response;
-                     });
+    auto response = proto_pool_.Alloc().release();
+    transport_->Send(
+        request, response, [this, response, on_done](const Status& status) {
+          if (status.ok()) {
+            on_done(ConvertRpcStatus(response->result()));
+          } else {
+            // Always use network fail open policy.
+            on_done(Status::OK);
+          }
+          proto_pool_.Free(std::unique_ptr<QuotaResponse>(response));
+        });
     return;
   }
 
@@ -126,7 +127,7 @@ void QuotaCache::Quota(const Attributes& request, DoneFunc on_done) {
 
   CacheElem* cache_elem;
   if (!lookup.Found()) {
-    cache_elem = new CacheElem(request, transport_);
+    cache_elem = new CacheElem(this, request, transport_);
     cache_->Insert(signature, cache_elem, 1);
   } else {
     cache_elem = lookup.value();

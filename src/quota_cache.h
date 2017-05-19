@@ -25,6 +25,7 @@
 #include "prefetch/quota_prefetch.h"
 #include "src/cache_key_set.h"
 #include "src/transport.h"
+#include "utils/proto_pool.h"
 #include "utils/simple_lru_cache.h"
 #include "utils/simple_lru_cache_inl.h"
 
@@ -54,7 +55,8 @@ class QuotaCache {
   // The cache element for each quota metric.
   class CacheElem {
    public:
-    CacheElem(const Attributes& request, QuotaTransport* transport);
+    CacheElem(QuotaCache* cache, const Attributes& request,
+              QuotaTransport* transport);
 
     // Use the prefetch object to check the quota.
     bool Quota(const Attributes& request);
@@ -66,6 +68,8 @@ class QuotaCache {
     // The quota allocation call.
     void Alloc(int amount, QuotaPrefetch::DoneFunc fn);
 
+    // Parent cache object;
+    QuotaCache* cache_;
     // The original quota request.
     Attributes request_;
     // the quota name.
@@ -101,6 +105,9 @@ class QuotaCache {
 
   // The cache that maps from key to prefetch object
   std::unique_ptr<QuotaLRUCache> cache_;
+
+  // A pool to reuse protobuf
+  ProtoPool<::istio::mixer::v1::QuotaResponse> proto_pool_;
 
   GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(QuotaCache);
 };

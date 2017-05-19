@@ -21,6 +21,7 @@
 #include "src/grpc_transport.h"
 #include "src/quota_cache.h"
 #include "src/transport.h"
+#include "utils/proto_pool.h"
 
 namespace istio {
 namespace mixer_client {
@@ -46,6 +47,10 @@ class MixerClientImpl : public MixerClient {
 
   std::shared_ptr<CheckCache> check_cache_;
   std::shared_ptr<QuotaCache> quota_cache_;
+
+  // A pool to reuse protobuf
+  ProtoPool<::istio::mixer::v1::CheckResponse> check_pool_;
+  ProtoPool<::istio::mixer::v1::ReportResponse> report_pool_;
 
   GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(MixerClientImpl);
 };

@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include "src/grpc_transport.h"
+#include "utils/proto_pool.h"
 
 #include <condition_variable>
 #include <mutex>
@@ -46,10 +47,7 @@ class GrpcStream final : public WriteInterface<RequestType> {
     write_t.detach();
   }
 
-  void Write(const RequestType& request) override {
-    // make a copy and push to the queue
-    WriteQueuePush(new RequestType(request));
-  }
+  void Write(const RequestType& request) override { WriteQueuePush(&request); }
 
   void WritesDone() override {
     // push a nullptr to indicate half close
@@ -83,9 +81,15 @@ class GrpcStream final : public WriteInterface<RequestType> {
     reader_->OnClose(pb_status);
   }
 
-  void WriteQueuePush(RequestType* request) {
+  void WriteQueuePush(const RequestType* request) {
+    std::unique_ptr<RequestType> request_copy;
+    if (request) {
+      request_copy = std::move(proto_pool_.Alloc());
+      // make a copy
+      *request_copy = *request;
+    }
     std::unique_lock<std::mutex> lk(write_queue_mutex_);
-    write_queue_.emplace(request);
+    write_queue_.push(std::move(request_copy));
     cv_.notify_one();
   }
 
@@ -115,7 +119,9 @@ class GrpcStream final : public WriteInterface<RequestType> {
         }
         break;
       }
-      if (!stream_->Write(*request)) {
+      bool ret = stream_->Write(*request);
+      proto_pool_.Free(std::move(request));
+      if (!ret) {
         set_write_closed();
         break;
       }
@@ -140,6 +146,8 @@ class GrpcStream final : public WriteInterface<RequestType> {
   std::condition_variable cv_;
   // a queue to store pending queue for write
   std::queue<std::unique_ptr<RequestType>> write_queue_;
+  // A pool to reuse protobuf
+  ProtoPool<RequestType> proto_pool_;
 };
 
 typedef GrpcStream<::istio::mixer::v1::CheckRequest,

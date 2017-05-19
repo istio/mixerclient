@@ -45,15 +45,15 @@ MixerClientImpl::MixerClientImpl(const MixerClientOptions &options)
 MixerClientImpl::~MixerClientImpl() { check_cache_->FlushAll(); }
 
 void MixerClientImpl::Check(const Attributes &attributes, DoneFunc on_done) {
-  auto response = new CheckResponse;
+  auto response = check_pool_.Alloc().release();
   std::string signature;
   Status status = check_cache_->Check(attributes, response, &signature);
   if (status.error_code() == Code::NOT_FOUND) {
     std::shared_ptr<CheckCache> check_cache_copy = check_cache_;
     bool fail_open = options_.check_options.network_fail_open;
     check_transport_->Send(
-        attributes, response, [check_cache_copy, signature, response, on_done,
-                               fail_open](const Status &status) {
+        attributes, response, [this, check_cache_copy, signature, response,
+                               on_done, fail_open](const Status &status) {
           if (status.ok()) {
             check_cache_copy->CacheResponse(signature, *response);
             on_done(ConvertRpcStatus(response->result()));
@@ -64,7 +64,7 @@ void MixerClientImpl::Check(const Attributes &attributes, DoneFunc on_done) {
               on_done(status);
             }
           }
-          delete response;
+          check_pool_.Free(std::unique_ptr<CheckResponse>(response));
         });
     return;
   }
@@ -74,20 +74,20 @@ void MixerClientImpl::Check(const Attributes &attributes, DoneFunc on_done) {
   } else {
     on_done(status);
   }
-  delete response;
+  check_pool_.Free(std::unique_ptr<CheckResponse>(response));
 }
 
 void MixerClientImpl::Report(const Attributes &attributes, DoneFunc on_done) {
-  auto response = new ReportResponse;
-  report_transport_->Send(attributes, response,
-                          [response, on_done](const Status &status) {
-                            if (status.ok()) {
-                              on_done(ConvertRpcStatus(response->result()));
-                            } else {
-                              on_done(status);
-                            }
-                            delete response;
-                          });
+  auto response = report_pool_.Alloc().release();
+  report_transport_->Send(
+      attributes, response, [this, response, on_done](const Status &status) {
+        if (status.ok()) {
+          on_done(ConvertRpcStatus(response->result()));
+        } else {
+          on_done(status);
+        }
+        report_pool_.Free(std::unique_ptr<ReportResponse>(response));
+      });
 }
 
 void MixerClientImpl::Quota(const Attributes &attributes, DoneFunc on_done) {

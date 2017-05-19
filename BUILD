@@ -43,6 +43,7 @@ cc_library(
         "utils/md5.h",
         "utils/protobuf.cc",
         "utils/protobuf.h",
+        "utils/proto_pool.h",
         "utils/status_test_util.h",
     ],
     hdrs = [
