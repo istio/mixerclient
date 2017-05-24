@@ -22,6 +22,8 @@ cc_library(
         "src/attribute.cc",
         "src/attribute_converter.cc",
         "src/attribute_converter.h",
+        "src/check_cache.cc",
+        "src/check_cache.h",
         "src/cache_key_set.cc",
         "src/cache_key_set.h",
         "src/client_impl.cc",
@@ -99,6 +101,17 @@ cc_test(
     name = "cache_key_set_test",
     size = "small",
     srcs = ["src/cache_key_set_test.cc"],
+    linkstatic = 1,
+    deps = [
+        ":mixer_client_lib",
+        "//external:googletest_main",
+    ],
+)
+
+cc_test(
+    name = "check_cache_test",
+    size = "small",
+    srcs = ["src/check_cache_test.cc"],
     linkstatic = 1,
     deps = [
         ":mixer_client_lib",

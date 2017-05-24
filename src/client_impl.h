@@ -18,6 +18,7 @@
 
 #include "include/client.h"
 #include "src/attribute_converter.h"
+#include "src/check_cache.h"
 
 namespace istio {
 namespace mixer_client {
@@ -43,6 +44,8 @@ class MixerClientImpl : public MixerClient {
 
   // For quota deduplication
   int64_t deduplication_id_;
+
+  std::unique_ptr<CheckCache> check_cache_;
 
   GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(MixerClientImpl);
 };
