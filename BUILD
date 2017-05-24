@@ -30,6 +30,8 @@ cc_library(
         "src/client_impl.h",
         "src/signature.cc",
         "src/signature.h",
+        "src/quota_cache.cc",
+        "src/quota_cache.h",
         "utils/md5.cc",
         "utils/md5.h",
         "utils/protobuf.cc",
@@ -44,6 +46,7 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":simple_lru_cache",
+	"//prefetch:quota_prefetch_lib",
         "//external:boringssl_crypto",
         "//external:grpc++",
         "//external:mixer_api_cc_proto",
@@ -112,6 +115,17 @@ cc_test(
     name = "check_cache_test",
     size = "small",
     srcs = ["src/check_cache_test.cc"],
+    linkstatic = 1,
+    deps = [
+        ":mixer_client_lib",
+        "//external:googletest_main",
+    ],
+)
+
+cc_test(
+    name = "quota_cache_test",
+    size = "small",
+    srcs = ["src/quota_cache_test.cc"],
     linkstatic = 1,
     deps = [
         ":mixer_client_lib",
