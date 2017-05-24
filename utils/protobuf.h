@@ -17,8 +17,11 @@
 #define MIXER_CLIENT_UTILS_PROTOBUF_H_
 
 #include "google/protobuf/stubs/status.h"
+#include "google/protobuf/duration.pb.h"
 #include "google/protobuf/timestamp.pb.h"
-#include "mixer/v1/service.grpc.pb.h"
+
+
+#include <chrono>
 
 namespace istio {
 namespace mixer_client {

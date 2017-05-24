@@ -544,7 +544,6 @@ cc_proto_library(
     ),
     default_runtime = "//external:protobuf",
     protoc = "//external:protoc",
-    use_grpc_plugin = True,
     visibility = ["//visibility:public"],
     deps = [
         "//external:cc_wkt_protos",
@@ -554,10 +553,9 @@ cc_proto_library(
 )
 """.format(protobuf_repo)
 
-    native.new_git_repository(
+    native.new_local_repository(
         name = "mixerapi_git",
-        commit = "3205a0817e7a7aa8118c249fffe5f161be6863ec",  # May. 12
-        remote = "https://github.com/istio/api.git",
+	path = "/home/qiwzhang/github/istio/api",
         build_file_content = BUILD,
     )
     if bind:
