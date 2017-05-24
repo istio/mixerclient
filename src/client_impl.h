@@ -19,6 +19,7 @@
 #include "include/client.h"
 #include "src/attribute_converter.h"
 #include "src/check_cache.h"
+#include "src/quota_cache.h"
 
 namespace istio {
 namespace mixer_client {
@@ -42,10 +43,10 @@ class MixerClientImpl : public MixerClient {
   // To convert attributes into protobuf
   AttributeConverter converter_;
 
-  // For quota deduplication
-  int64_t deduplication_id_;
-
+  // Cache for Check call.
   std::unique_ptr<CheckCache> check_cache_;
+  // Cache for Quota call.
+  std::unique_ptr<QuotaCache> quota_cache_;
 
   GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(MixerClientImpl);
 };
