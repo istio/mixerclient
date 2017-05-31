@@ -16,10 +16,9 @@
 #ifndef MIXER_CLIENT_UTILS_PROTOBUF_H_
 #define MIXER_CLIENT_UTILS_PROTOBUF_H_
 
-#include "google/protobuf/stubs/status.h"
 #include "google/protobuf/duration.pb.h"
+#include "google/protobuf/stubs/status.h"
 #include "google/protobuf/timestamp.pb.h"
-
 
 #include <chrono>
 
