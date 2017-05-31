@@ -48,7 +48,6 @@ cc_library(
         ":simple_lru_cache",
 	"//prefetch:quota_prefetch_lib",
         "//external:boringssl_crypto",
-        "//external:grpc++",
         "//external:mixer_api_cc_proto",
     ],
 )
