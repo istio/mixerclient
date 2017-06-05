@@ -27,11 +27,12 @@ class Timer {
   // Delete the timer, stopping it first if needed.
   virtual ~Timer() {}
 
-  // Stop the timer.
+  // Stop a pending timeout without destroying the underlying timer.
   virtual void Stop() = 0;
 
-  // Reset the timer with new interval.
-  virtual void Reset(int interval_ms) = 0;
+  // Start a pending timeout. If a timeout is already pending,
+  // it will be reset to the new timeout.
+  virtual void Start(int interval_ms) = 0;
 };
 
 // Defines a function to create a timer calling the function
