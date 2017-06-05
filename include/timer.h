@@ -29,13 +29,16 @@ class Timer {
 
   // Stop the timer.
   virtual void Stop() = 0;
+
+  // Reset the timer with new interval.
+  virtual void Reset(int interval_ms) = 0;
 };
 
 // Defines a function to create a timer calling the function
 // with desired interval. The returned object can be used to stop
 // the timer.
-using TimerCreateFunc = std::function<std::unique_ptr<Timer>(
-    int interval_ms, std::function<void()> timer_func)>;
+using TimerCreateFunc =
+    std::function<std::unique_ptr<Timer>(std::function<void()> timer_func)>;
 
 }  // namespace mixer_client
 }  // namespace istio
