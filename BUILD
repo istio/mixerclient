@@ -30,6 +30,8 @@ cc_library(
         "src/client_impl.h",
         "src/delta_update.cc",
         "src/delta_update.h",
+        "src/report_batch.cc",
+        "src/report_batch.h",
         "src/signature.cc",
         "src/signature.h",
         "src/quota_cache.cc",

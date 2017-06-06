@@ -52,12 +52,16 @@ struct MixerClientOptions {
 
   // Constructor with specified option values.
   MixerClientOptions(const CheckOptions& check_options,
+                     const ReportOptions& report_options,
                      const QuotaOptions& quota_options)
-      : check_options(check_options), quota_options(quota_options) {}
+      : check_options(check_options),
+        report_options(report_options),
+        quota_options(quota_options) {}
 
   // Check options.
   CheckOptions check_options;
-
+  // Report options.
+  ReportOptions report_options;
   // Quota options.
   QuotaOptions quota_options;
 
@@ -87,7 +91,7 @@ class MixerClient {
   virtual void Check(const Attributes& attributes, DoneFunc on_done) = 0;
 
   // A report call.
-  virtual void Report(const Attributes& attributes, DoneFunc on_done) = 0;
+  virtual void Report(const Attributes& attributes) = 0;
 
   // A quota call.
   virtual void Quota(const Attributes& attributes, DoneFunc on_done) = 0;
