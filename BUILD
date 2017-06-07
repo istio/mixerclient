@@ -138,6 +138,17 @@ cc_test(
 )
 
 cc_test(
+    name = "report_batch_test",
+    size = "small",
+    srcs = ["src/report_batch_test.cc"],
+    linkstatic = 1,
+    deps = [
+        ":mixer_client_lib",
+        "//external:googletest_main",
+    ],
+)
+
+cc_test(
     name = "quota_cache_test",
     size = "small",
     srcs = ["src/quota_cache_test.cc"],

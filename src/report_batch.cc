@@ -41,11 +41,11 @@ void ReportBatch::Report(const Attributes& request) {
     batch_converter_ = converter_.CreateBatchConverter();
   }
 
-  if (!batch_converter_->AddReport(request)) {
+  if (!batch_converter_->Add(request)) {
     FlushWithLock();
 
     batch_converter_ = converter_.CreateBatchConverter();
-    batch_converter_->AddReport(request);
+    batch_converter_->Add(request);
   }
 
   if (batch_converter_->size() >= options_.max_batch_entries) {
