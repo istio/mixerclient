@@ -19,8 +19,8 @@
 #include "include/client.h"
 #include "src/attribute_converter.h"
 #include "src/check_cache.h"
-#include "src/report_batch.h"
 #include "src/quota_cache.h"
+#include "src/report_batch.h"
 
 namespace istio {
 namespace mixer_client {
