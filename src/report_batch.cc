@@ -69,8 +69,12 @@ void ReportBatch::FlushWithLock() {
   }
 
   ReportResponse* response = new ReportResponse;
-  transport_(*request, response,
-             [response](const Status& status) { delete response; });
+  transport_(*request, response, [response](const Status& status) {
+    delete response;
+    if (!status.ok()) {
+      GOOGLE_LOG(ERROR) << "Mixer Report failed with: " << status.ToString();
+    }
+  });
 }
 
 void ReportBatch::Flush() {
