@@ -25,13 +25,12 @@ namespace mixer_client {
 
 ReportBatch::ReportBatch(const ReportOptions& options,
                          TransportReportFunc transport,
-                         TimerCreateFunc timer_func,
+                         TimerCreateFunc timer_create,
                          const AttributeConverter& converter)
-    : options_(options), transport_(transport), converter_(converter) {
-  if (timer_func) {
-    timer_ = timer_func([this]() { Flush(); });
-  }
-}
+    : options_(options),
+      transport_(transport),
+      timer_create_(timer_create),
+      converter_(converter) {}
 
 ReportBatch::~ReportBatch() { Flush(); }
 
@@ -51,7 +50,10 @@ void ReportBatch::Report(const Attributes& request) {
   if (batch_converter_->size() >= options_.max_batch_entries) {
     FlushWithLock();
   } else {
-    if (batch_converter_->size() == 1 && timer_) {
+    if (batch_converter_->size() == 1 && timer_create_) {
+      if (!timer_) {
+        timer_ = timer_create_([this]() { Flush(); });
+      }
       timer_->Start(options_.max_batch_time_ms);
     }
   }

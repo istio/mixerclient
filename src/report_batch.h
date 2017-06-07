@@ -28,7 +28,8 @@ namespace mixer_client {
 class ReportBatch {
  public:
   ReportBatch(const ReportOptions& options, TransportReportFunc transport,
-              TimerCreateFunc timer_func, const AttributeConverter& converter);
+              TimerCreateFunc timer_create,
+              const AttributeConverter& converter);
 
   virtual ~ReportBatch();
 
@@ -46,6 +47,9 @@ class ReportBatch {
 
   // The quota transport
   TransportReportFunc transport_;
+
+  // timer create func
+  TimerCreateFunc timer_create_;
 
   // Attribute converter.
   const AttributeConverter& converter_;

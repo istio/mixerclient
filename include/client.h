@@ -71,6 +71,9 @@ struct MixerClientOptions {
   TransportQuotaFunc quota_transport;
 
   // Timer create function.
+  // Usually there are some restrictions on timer_create_func.
+  // Don't call it at program start, or init time, it is not ready.
+  // It is safe to call during Check() or Report() calls.
   TimerCreateFunc timer_create_func;
 };
 
