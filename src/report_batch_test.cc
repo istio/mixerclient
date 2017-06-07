@@ -47,8 +47,7 @@ class MockTimer : public Timer {
 
 class ReportBatchTest : public ::testing::Test {
  public:
-  ReportBatchTest() : converter_({}) {
-    mock_timer_ = new MockTimer;
+  ReportBatchTest() : mock_timer_(nullptr), converter_({}) {
     batch_.reset(new ReportBatch(ReportOptions(3, 1000),
                                  mock_report_transport_.GetFunc(),
                                  GetTimerFunc(), converter_));
@@ -56,6 +55,7 @@ class ReportBatchTest : public ::testing::Test {
 
   TimerCreateFunc GetTimerFunc() {
     return [this](std::function<void()> cb) -> std::unique_ptr<Timer> {
+      mock_timer_ = new MockTimer;
       mock_timer_->cb_ = cb;
       return std::unique_ptr<Timer>(mock_timer_);
     };
@@ -138,6 +138,7 @@ TEST_F(ReportBatchTest, TestBatchReportWithTimeout) {
   batch_->Report(report);
   EXPECT_EQ(report_call_count, 0);
 
+  EXPECT_TRUE(mock_timer_ != nullptr);
   EXPECT_TRUE(mock_timer_->cb_);
   mock_timer_->cb_();
   EXPECT_EQ(report_call_count, 1);
