@@ -35,7 +35,6 @@ class MixerClientImpl : public MixerClient {
 
   virtual void Check(const Attributes& attributes, DoneFunc on_done);
   virtual void Report(const Attributes& attributes);
-  virtual void Quota(const Attributes& attributes, DoneFunc on_done);
 
  private:
   // Store the options
