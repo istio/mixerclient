@@ -50,6 +50,9 @@ class MixerClientImpl : public MixerClient {
   // Cache for Quota call.
   std::unique_ptr<QuotaCache> quota_cache_;
 
+  // For quota deduplication
+  int64_t deduplication_id_;
+
   GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(MixerClientImpl);
 };
 

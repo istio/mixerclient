@@ -20,8 +20,6 @@ using ::istio::mixer::v1::CheckRequest;
 using ::istio::mixer::v1::CheckResponse;
 using ::istio::mixer::v1::ReportRequest;
 using ::istio::mixer::v1::ReportResponse;
-using ::istio::mixer::v1::QuotaRequest;
-using ::istio::mixer::v1::QuotaResponse;
 using ::google::protobuf::util::Status;
 using ::google::protobuf::util::error::Code;
 
@@ -29,53 +27,72 @@ namespace istio {
 namespace mixer_client {
 
 MixerClientImpl::MixerClientImpl(const MixerClientOptions &options)
-    : options_(options) {
+  : options_(options), deduplication_id_(0) {
   check_cache_ =
       std::unique_ptr<CheckCache>(new CheckCache(options.check_options));
   report_batch_ = std::unique_ptr<ReportBatch>(
       new ReportBatch(options.report_options, options_.report_transport,
                       options.timer_create_func, converter_));
-  quota_cache_ = std::unique_ptr<QuotaCache>(new QuotaCache(
-      options.quota_options, options_.quota_transport, converter_));
+  quota_cache_ = std::unique_ptr<QuotaCache>(new QuotaCache(options.quota_options));
 }
 
 MixerClientImpl::~MixerClientImpl() {}
 
 void MixerClientImpl::Check(const Attributes &attributes, DoneFunc on_done) {
-  std::string signature;
-  Status status =
-      check_cache_->Check(attributes, system_clock::now(), &signature);
-  if (status.error_code() != Code::NOT_FOUND) {
-    on_done(status);
+  std::unique_ptr<CheckCache::CacheState> check_state(
+      new CheckCache::CacheState);
+  check_cache_->Check(attributes, check_state.get());
+  if (check_state->IsCacheHit() && !check_state->status().ok()) {
+    on_done(check_state->status());
     return;
   }
 
+  std::unique_ptr<QuotaCache::CacheState> quota_state(
+      new QuotaCache::CacheState);
+  quota_cache_->Quota(attributes, quota_state.get());
+
   CheckRequest request;
+  bool quota_call = quota_state->BuildRequest(&request);
+  if (check_state->IsCacheHit() && quota_state->IsCacheHit()) {
+    on_done(quota_state->status());
+    on_done = nullptr;
+    if (!quota_call) {
+      return;
+    }
+  }
+
   converter_.Convert(attributes, request.mutable_attributes());
   request.set_global_word_count(converter_.global_word_count());
+  request.set_deduplication_id(std::to_string(deduplication_id_++));
+
+  if (!check_state->IsCacheHit()) {
+    request.set_preconditions(true);
+  }
+
   auto response = new CheckResponse;
-  options_.check_transport(request, response, [this, signature, response,
-                                               on_done](const Status &status) {
-    if (!status.ok()) {
-      if (options_.check_options.network_fail_open) {
-        on_done(Status::OK);
-      } else {
-        on_done(status);
-      }
-    } else {
-      on_done(check_cache_->CacheResponse(signature, *response,
-                                          system_clock::now()));
-    }
-    delete response;
-  });
+  // Lambda capture could not pass unique_ptr, use raw pointer.
+  CheckCache::CacheState *raw_check_state = check_state.release();
+  QuotaCache::CacheState *raw_quota_state = quota_state.release();
+  options_.check_transport(request, response,
+                           [response, raw_check_state, raw_quota_state,
+                            on_done](const Status &status) {
+                             raw_check_state->SetResponse(status, *response);
+                             raw_quota_state->SetResponse(status, *response);
+                             if (on_done) {
+                               if (!raw_check_state->status().ok()) {
+                                 on_done(raw_check_state->status());
+                               } else {
+                                 on_done(raw_quota_state->status());
+                               }
+                             }
+                             delete raw_check_state;
+                             delete raw_quota_state;
+                             delete response;
+                           });
 }
 
 void MixerClientImpl::Report(const Attributes &attributes) {
   report_batch_->Report(attributes);
-}
-
-void MixerClientImpl::Quota(const Attributes &attributes, DoneFunc on_done) {
-  quota_cache_->Quota(attributes, on_done);
 }
 
 // Creates a MixerClient object.

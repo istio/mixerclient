@@ -27,17 +27,23 @@ namespace mixer_client {
 
 void CheckCache::CacheElem::CacheElem::SetResponse(
     const CheckResponse& response, Tick time_now) {
-  status_ = ConvertRpcStatus(response.status());
-  if (response.has_cachability()) {
-    if (response.cachability().has_duration()) {
+  if (response.has_precondition()) {
+    if (response.precondition().pass()) {
+      status_ = Status::OK;
+    } else {
+      status_ = ConvertRpcStatus(response.status());
+    }
+
+    if (response.precondition().has_valid_duration()) {
       expire_time_ =
-          time_now + ToMilliseonds(response.cachability().duration());
+          time_now + ToMilliseonds(response.precondition().valid_duration());
     } else {
       // never expired.
       expire_time_ = time_point<system_clock>::max();
     }
-    use_count_ = response.cachability().use_count();
+    use_count_ = response.precondition().valid_use_count();
   } else {
+    status_ = ConvertRpcStatus(response.status());
     // if no cachability specified, use it forever.
     use_count_ = -1;  // -1 for not checking use_count
     expire_time_ = time_point<system_clock>::max();
@@ -65,6 +71,28 @@ CheckCache::CheckCache(const CheckOptions& options) : options_(options) {
 CheckCache::~CheckCache() {
   // FlushAll() will remove all cache items.
   FlushAll();
+}
+
+void CheckCache::Check(const Attributes& attributes, CacheState* state) {
+  std::string signature;
+  Status status = Check(attributes, system_clock::now(), &signature);
+  if (status.error_code() != Code::NOT_FOUND) {
+    state->status_ = status;
+    return;
+  }
+
+  state->on_response_ = [this, signature](
+      const Status& status, const CheckResponse& response) -> Status {
+    if (!status.ok()) {
+      if (options_.network_fail_open) {
+        return Status::OK;
+      } else {
+        return status;
+      }
+    } else {
+      return CacheResponse(signature, response, system_clock::now());
+    }
+  };
 }
 
 Status CheckCache::Check(const Attributes& attributes, Tick time_now,
