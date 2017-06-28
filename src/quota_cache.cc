@@ -50,7 +50,7 @@ void QuotaCache::CacheElem::Alloc(int amount, QuotaPrefetch::DoneFunc fn) {
   };
 }
 
-bool QuotaCache::CacheElem::Quota(int amount, CacheState::Quota* quota) {
+bool QuotaCache::CacheElem::Quota(int amount, CacheResult::Quota* quota) {
   quota_ = quota;
   bool ret = prefetch_->Check(amount, system_clock::now());
   // A hack that requires prefetch code to call transport Alloc() function
@@ -59,21 +59,23 @@ bool QuotaCache::CacheElem::Quota(int amount, CacheState::Quota* quota) {
   return ret;
 }
 
-QuotaCache::CacheState::CacheState() : status_(Code::UNAVAILABLE, "") {}
+QuotaCache::CacheResult::CacheResult() : status_(Code::UNAVAILABLE, "") {}
 
-bool QuotaCache::CacheState::IsCacheHit() const { return status_.error_code() != Code::UNAVAILABLE; }
+bool QuotaCache::CacheResult::IsCacheHit() const {
+  return status_.error_code() != Code::UNAVAILABLE;
+}
 
-bool QuotaCache::CacheState::BuildRequest(CheckRequest* request) {
+bool QuotaCache::CacheResult::BuildRequest(CheckRequest* request) {
   int pending_count = 0;
   std::string rejected_quota_names;
   for (const auto& quota : quotas_) {
     // TODO: return used quota amount to passed quotas.
-    if (quota.state == Quota::Rejected) {
+    if (quota.result == Quota::Rejected) {
       if (!rejected_quota_names.empty()) {
         rejected_quota_names += ",";
       }
       rejected_quota_names += quota.name;
-    } else if (quota.state == Quota::Pending) {
+    } else if (quota.result == Quota::Pending) {
       ++pending_count;
     }
     if (quota.response_func) {
@@ -85,7 +87,7 @@ bool QuotaCache::CacheState::BuildRequest(CheckRequest* request) {
   }
   if (!rejected_quota_names.empty()) {
     status_ =
-      Status(Code::RESOURCE_EXHAUSTED,
+        Status(Code::RESOURCE_EXHAUSTED,
                std::string("Quota is exhausted for: ") + rejected_quota_names);
   } else if (pending_count == 0) {
     status_ = Status::OK;
@@ -93,7 +95,8 @@ bool QuotaCache::CacheState::BuildRequest(CheckRequest* request) {
   return request->quotas().size() > 0;
 }
 
-void QuotaCache::CacheState::SetResponse(const Status& status, const CheckResponse& response) {
+void QuotaCache::CacheResult::SetResponse(const Status& status,
+                                          const CheckResponse& response) {
   std::string rejected_quota_names;
   for (const auto& quota : quotas_) {
     if (quota.response_func) {
@@ -118,15 +121,14 @@ void QuotaCache::CacheState::SetResponse(const Status& status, const CheckRespon
   }
   if (!rejected_quota_names.empty()) {
     status_ =
-      Status(Code::RESOURCE_EXHAUSTED,
+        Status(Code::RESOURCE_EXHAUSTED,
                std::string("Quota is exhausted for: ") + rejected_quota_names);
   } else {
     status_ = Status::OK;
   }
 }
 
-QuotaCache::QuotaCache(const QuotaOptions& options)
-    : options_(options) {
+QuotaCache::QuotaCache(const QuotaOptions& options) : options_(options) {
   if (options.num_entries > 0) {
     cache_.reset(new QuotaLRUCache(options.num_entries));
     cache_->SetMaxIdleSeconds(options.expiration_ms / 1000.0);
@@ -141,11 +143,11 @@ QuotaCache::~QuotaCache() {
   FlushAll();
 }
 
-void QuotaCache::CheckCache(const Attributes& request,
-                            CacheState::Quota* quota) {
-  if (!cache_) {
+void QuotaCache::CheckCache(const Attributes& request, bool use_cache,
+                            CacheResult::Quota* quota) {
+  if (!cache_ || !use_cache) {
     quota->best_effort = false;
-    quota->state = CacheState::Quota::Pending;
+    quota->result = CacheResult::Quota::Pending;
     quota->response_func =
         [](const CheckResponse::QuotaResult* result) -> bool {
       // nullptr means connection error, for quota, it is fail open for
@@ -169,13 +171,18 @@ void QuotaCache::CheckCache(const Attributes& request,
   }
 
   if (cache_elem->Quota(quota->amount, quota)) {
-    quota->state = CacheState::Quota::Passed;
+    quota->result = CacheResult::Quota::Passed;
   } else {
-    quota->state = CacheState::Quota::Rejected;
+    // TODO: for multiple quota metrics in a request,
+    // if a metric is rejected, other metrics should not use any tokens.
+    // One way is for prefetch to implement TryQuota, we call TryQuota
+    // for all metrics first, only all passed, then deduce the tokens.
+    quota->result = CacheResult::Quota::Rejected;
   }
 }
 
-void QuotaCache::Quota(const Attributes& request, CacheState* state) {
+void QuotaCache::Quota(const Attributes& request, bool use_cache,
+                       CacheResult* result) {
   // Now, there is only one quota metric for a request.
   // But it should be very easy to support multiple quota metrics.
   static const std::vector<std::pair<std::string, std::string>>
@@ -188,16 +195,16 @@ void QuotaCache::Quota(const Attributes& request, CacheState* state) {
         name_it->second.type != Attributes::Value::STRING) {
       continue;
     }
-    CacheState::Quota quota;
+    CacheResult::Quota quota;
     quota.name = name_it->second.str_v;
     quota.amount = 1;
-    const auto &amount_it = request.attributes.find(amount_attr);
+    const auto& amount_it = request.attributes.find(amount_attr);
     if (amount_it != request.attributes.end() &&
         amount_it->second.type == Attributes::Value::INT64) {
       quota.amount = amount_it->second.value.int64_v;
     }
-    CheckCache(request, &quota);
-    state->quotas_.push_back(quota);
+    CheckCache(request, use_cache, &quota);
+    result->quotas_.push_back(quota);
   }
 }
 

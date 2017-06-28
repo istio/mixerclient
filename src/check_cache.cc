@@ -73,15 +73,15 @@ CheckCache::~CheckCache() {
   FlushAll();
 }
 
-void CheckCache::Check(const Attributes& attributes, CacheState* state) {
+void CheckCache::Check(const Attributes& attributes, CacheResult* result) {
   std::string signature;
   Status status = Check(attributes, system_clock::now(), &signature);
   if (status.error_code() != Code::NOT_FOUND) {
-    state->status_ = status;
+    result->status_ = status;
     return;
   }
 
-  state->on_response_ = [this, signature](
+  result->on_response_ = [this, signature](
       const Status& status, const CheckResponse& response) -> Status {
     if (!status.ok()) {
       if (options_.network_fail_open) {

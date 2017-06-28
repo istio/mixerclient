@@ -41,15 +41,15 @@ class QuotaCache {
 
   // A class to batch multiple quota requests.
   // Its usage:
-  //     cache->Quota(attributes, &state);
-  //     send = state->BuildRequest(&request);
-  //     if (cache->IsCacheHit()) return state->State();
+  //     cache->Quota(attributes, &result);
+  //     send = result->BuildRequest(&request);
+  //     if (cache->IsCacheHit()) return result->Result();
   // If send is true, make a remote call, on response.
-  //     state->SetResponse(status, response);
-  //     return state->State();
-  class CacheState {
+  //     result->SetResponse(status, response);
+  //     return result->Result();
+  class CacheResult {
    public:
-    CacheState();
+    CacheResult();
 
     // Build CheckRequest::quotas fields, return true if remote quota call
     // is required.
@@ -70,12 +70,12 @@ class QuotaCache {
       uint64_t amount;
       bool best_effort;
 
-      enum State {
+      enum Result {
         Pending = 0,
         Passed,
         Rejected,
       };
-      State state;
+      Result result;
 
       // The function to set the quota response from server.
       using OnResponseFunc = std::function<bool(
@@ -89,12 +89,13 @@ class QuotaCache {
     std::vector<Quota> quotas_;
   };
 
-  // Check quota cache for a request, result will be stored in CacaheState.
-  void Quota(const Attributes& request, CacheState* state);
+  // Check quota cache for a request, result will be stored in CacaheResult.
+  void Quota(const Attributes& request, bool use_cache, CacheResult* result);
 
  private:
   // Check quota cache.
-  void CheckCache(const Attributes& request, CacheState::Quota* quota);
+  void CheckCache(const Attributes& request, bool use_cache,
+                  CacheResult::Quota* quota);
 
   // Invalidates expired check responses.
   // Called at time specified by GetNextFlushInterval().
@@ -110,7 +111,7 @@ class QuotaCache {
     CacheElem(const std::string& name);
 
     // Use the prefetch object to check the quota.
-    bool Quota(int amount, CacheState::Quota* quota);
+    bool Quota(int amount, CacheResult::Quota* quota);
 
     // The quota name.
     const std::string& quota_name() const { return name_; }
@@ -121,8 +122,8 @@ class QuotaCache {
 
     std::string name_;
 
-    // A temporary pending quota state.
-    CacheState::Quota* quota_;
+    // A temporary pending quota result.
+    CacheResult::Quota* quota_;
 
     // The prefetch object.
     std::unique_ptr<QuotaPrefetch> prefetch_;

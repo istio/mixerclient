@@ -27,34 +27,39 @@ namespace istio {
 namespace mixer_client {
 
 MixerClientImpl::MixerClientImpl(const MixerClientOptions &options)
-  : options_(options), deduplication_id_(0) {
+    : options_(options), deduplication_id_(0) {
   check_cache_ =
       std::unique_ptr<CheckCache>(new CheckCache(options.check_options));
   report_batch_ = std::unique_ptr<ReportBatch>(
       new ReportBatch(options.report_options, options_.report_transport,
                       options.timer_create_func, converter_));
-  quota_cache_ = std::unique_ptr<QuotaCache>(new QuotaCache(options.quota_options));
+  quota_cache_ =
+      std::unique_ptr<QuotaCache>(new QuotaCache(options.quota_options));
 }
 
 MixerClientImpl::~MixerClientImpl() {}
 
 void MixerClientImpl::Check(const Attributes &attributes, DoneFunc on_done) {
-  std::unique_ptr<CheckCache::CacheState> check_state(
-      new CheckCache::CacheState);
-  check_cache_->Check(attributes, check_state.get());
-  if (check_state->IsCacheHit() && !check_state->status().ok()) {
-    on_done(check_state->status());
+  std::unique_ptr<CheckCache::CacheResult> check_result(
+      new CheckCache::CacheResult);
+  check_cache_->Check(attributes, check_result.get());
+  if (check_result->IsCacheHit() && !check_result->status().ok()) {
+    on_done(check_result->status());
     return;
   }
 
-  std::unique_ptr<QuotaCache::CacheState> quota_state(
-      new QuotaCache::CacheState);
-  quota_cache_->Quota(attributes, quota_state.get());
+  std::unique_ptr<QuotaCache::CacheResult> quota_result(
+      new QuotaCache::CacheResult);
+  // Only use quota cache if Check is using cache with OK status.
+  // Otherwise, a remote Check call may be rejected, but quota amounts were
+  // substracted from quota cache already.
+  quota_cache_->Quota(attributes, check_result->IsCacheHit(),
+                      quota_result.get());
 
   CheckRequest request;
-  bool quota_call = quota_state->BuildRequest(&request);
-  if (check_state->IsCacheHit() && quota_state->IsCacheHit()) {
-    on_done(quota_state->status());
+  bool quota_call = quota_result->BuildRequest(&request);
+  if (check_result->IsCacheHit() && quota_result->IsCacheHit()) {
+    on_done(quota_result->status());
     on_done = nullptr;
     if (!quota_call) {
       return;
@@ -65,28 +70,28 @@ void MixerClientImpl::Check(const Attributes &attributes, DoneFunc on_done) {
   request.set_global_word_count(converter_.global_word_count());
   request.set_deduplication_id(std::to_string(deduplication_id_++));
 
-  if (!check_state->IsCacheHit()) {
+  if (!check_result->IsCacheHit()) {
     request.set_preconditions(true);
   }
 
   auto response = new CheckResponse;
   // Lambda capture could not pass unique_ptr, use raw pointer.
-  CheckCache::CacheState *raw_check_state = check_state.release();
-  QuotaCache::CacheState *raw_quota_state = quota_state.release();
+  CheckCache::CacheResult *raw_check_result = check_result.release();
+  QuotaCache::CacheResult *raw_quota_result = quota_result.release();
   options_.check_transport(request, response,
-                           [response, raw_check_state, raw_quota_state,
+                           [response, raw_check_result, raw_quota_result,
                             on_done](const Status &status) {
-                             raw_check_state->SetResponse(status, *response);
-                             raw_quota_state->SetResponse(status, *response);
+                             raw_check_result->SetResponse(status, *response);
+                             raw_quota_result->SetResponse(status, *response);
                              if (on_done) {
-                               if (!raw_check_state->status().ok()) {
-                                 on_done(raw_check_state->status());
+                               if (!raw_check_result->status().ok()) {
+                                 on_done(raw_check_result->status());
                                } else {
-                                 on_done(raw_quota_state->status());
+                                 on_done(raw_quota_result->status());
                                }
                              }
-                             delete raw_check_state;
-                             delete raw_quota_state;
+                             delete raw_check_result;
+                             delete raw_quota_result;
                              delete response;
                            });
 }

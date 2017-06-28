@@ -42,13 +42,13 @@ class CheckCache {
 
   virtual ~CheckCache();
 
-  // A check cache state for a request. Its usage
-  //   cache->Check(attributes, state);
-  //   if (state->IsCacheHit()) return state->Status();
+  // A check cache result for a request. Its usage
+  //   cache->Check(attributes, result);
+  //   if (result->IsCacheHit()) return result->Status();
   // Make remote call and on receiving response.
-  //   state->SetReponse(status, response);
-  //   return state->Status();
-  class CacheState {
+  //   result->SetReponse(status, response);
+  //   return result->Status();
+  class CacheResult {
    public:
     bool IsCacheHit() const { return !on_response_; }
 
@@ -73,9 +73,10 @@ class CheckCache {
     OnResponseFunc on_response_;
   };
 
-  void Check(const Attributes& attributes, CacheState* state);
+  void Check(const Attributes& attributes, CacheResult* result);
 
  private:
+  friend class CheckCacheTest;
   using Tick = std::chrono::time_point<std::chrono::system_clock>;
 
   // If the check could not be handled by the cache, returns NOT_FOUND,
