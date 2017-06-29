@@ -50,7 +50,7 @@ void QuotaCache::CacheElem::Alloc(int amount, QuotaPrefetch::DoneFunc fn) {
   };
 }
 
-bool QuotaCache::CacheElem::Quota(int amount, CacheResult::Quota* quota) {
+bool QuotaCache::CacheElem::Quota(int amount, CheckResult::Quota* quota) {
   quota_ = quota;
   bool ret = prefetch_->Check(amount, system_clock::now());
   // A hack that requires prefetch code to call transport Alloc() function
@@ -59,13 +59,13 @@ bool QuotaCache::CacheElem::Quota(int amount, CacheResult::Quota* quota) {
   return ret;
 }
 
-QuotaCache::CacheResult::CacheResult() : status_(Code::UNAVAILABLE, "") {}
+QuotaCache::CheckResult::CheckResult() : status_(Code::UNAVAILABLE, "") {}
 
-bool QuotaCache::CacheResult::IsCacheHit() const {
+bool QuotaCache::CheckResult::IsCacheHit() const {
   return status_.error_code() != Code::UNAVAILABLE;
 }
 
-bool QuotaCache::CacheResult::BuildRequest(CheckRequest* request) {
+bool QuotaCache::CheckResult::BuildRequest(CheckRequest* request) {
   int pending_count = 0;
   std::string rejected_quota_names;
   for (const auto& quota : quotas_) {
@@ -95,7 +95,7 @@ bool QuotaCache::CacheResult::BuildRequest(CheckRequest* request) {
   return request->quotas().size() > 0;
 }
 
-void QuotaCache::CacheResult::SetResponse(const Status& status,
+void QuotaCache::CheckResult::SetResponse(const Status& status,
                                           const CheckResponse& response) {
   std::string rejected_quota_names;
   for (const auto& quota : quotas_) {
@@ -144,10 +144,10 @@ QuotaCache::~QuotaCache() {
 }
 
 void QuotaCache::CheckCache(const Attributes& request, bool use_cache,
-                            CacheResult::Quota* quota) {
+                            CheckResult::Quota* quota) {
   if (!cache_ || !use_cache) {
     quota->best_effort = false;
-    quota->result = CacheResult::Quota::Pending;
+    quota->result = CheckResult::Quota::Pending;
     quota->response_func =
         [](const CheckResponse::QuotaResult* result) -> bool {
       // nullptr means connection error, for quota, it is fail open for
@@ -158,7 +158,9 @@ void QuotaCache::CheckCache(const Attributes& request, bool use_cache,
   }
 
   // TODO: add quota name into signature calculation.
-  std::string signature = GenerateSignature(request, *cache_keys_);
+  // For now, the cache key is the quota name.
+  //  std::string signature = GenerateSignature(request, *cache_keys_);
+  std::string signature = quota->name;
 
   std::lock_guard<std::mutex> lock(cache_mutex_);
   QuotaLRUCache::ScopedLookup lookup(cache_.get(), signature);
@@ -171,18 +173,18 @@ void QuotaCache::CheckCache(const Attributes& request, bool use_cache,
   }
 
   if (cache_elem->Quota(quota->amount, quota)) {
-    quota->result = CacheResult::Quota::Passed;
+    quota->result = CheckResult::Quota::Passed;
   } else {
     // TODO: for multiple quota metrics in a request,
     // if a metric is rejected, other metrics should not use any tokens.
     // One way is for prefetch to implement TryQuota, we call TryQuota
     // for all metrics first, only all passed, then deduce the tokens.
-    quota->result = CacheResult::Quota::Rejected;
+    quota->result = CheckResult::Quota::Rejected;
   }
 }
 
-void QuotaCache::Quota(const Attributes& request, bool use_cache,
-                       CacheResult* result) {
+void QuotaCache::Check(const Attributes& request, bool use_cache,
+                       CheckResult* result) {
   // Now, there is only one quota metric for a request.
   // But it should be very easy to support multiple quota metrics.
   static const std::vector<std::pair<std::string, std::string>>
@@ -195,7 +197,7 @@ void QuotaCache::Quota(const Attributes& request, bool use_cache,
         name_it->second.type != Attributes::Value::STRING) {
       continue;
     }
-    CacheResult::Quota quota;
+    CheckResult::Quota quota;
     quota.name = name_it->second.str_v;
     quota.amount = 1;
     const auto& amount_it = request.attributes.find(amount_attr);
@@ -209,6 +211,8 @@ void QuotaCache::Quota(const Attributes& request, bool use_cache,
 }
 
 // TODO: hookup with a timer object to call Flush() periodically.
+// Be careful; some transport callback functions may be still using
+// expired items, need to add ref_count into these callback functions.
 Status QuotaCache::Flush() {
   if (cache_) {
     std::lock_guard<std::mutex> lock(cache_mutex_);

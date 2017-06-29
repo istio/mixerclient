@@ -145,8 +145,8 @@ TEST_F(CheckCacheTest, TestExpiredByDuration) {
                     Check(attributes_, FakeTime(11), &signature));
 }
 
-TEST_F(CheckCacheTest, TestCacheResult) {
-  CheckCache::CacheResult result;
+TEST_F(CheckCacheTest, TestCheckResult) {
+  CheckCache::CheckResult result;
   cache_->Check(attributes_, &result);
   EXPECT_FALSE(result.IsCacheHit());
 
@@ -156,7 +156,7 @@ TEST_F(CheckCacheTest, TestCacheResult) {
   EXPECT_OK(result.status());
 
   for (int i = 0; i < 100; ++i) {
-    CheckCache::CacheResult result;
+    CheckCache::CheckResult result;
     cache_->Check(attributes_, &result);
     EXPECT_TRUE(result.IsCacheHit());
     EXPECT_OK(result.status());
@@ -164,7 +164,7 @@ TEST_F(CheckCacheTest, TestCacheResult) {
 }
 
 TEST_F(CheckCacheTest, TestInvalidResult) {
-  CheckCache::CacheResult result;
+  CheckCache::CheckResult result;
   cache_->Check(attributes_, &result);
   EXPECT_FALSE(result.IsCacheHit());
 
@@ -174,13 +174,13 @@ TEST_F(CheckCacheTest, TestInvalidResult) {
   EXPECT_ERROR_CODE(Code::INVALID_ARGUMENT, result.status());
 
   // Not found due to last invalid result.
-  CheckCache::CacheResult result1;
+  CheckCache::CheckResult result1;
   cache_->Check(attributes_, &result1);
   EXPECT_FALSE(result1.IsCacheHit());
 }
 
 TEST_F(CheckCacheTest, TestCachedSetResponse) {
-  CheckCache::CacheResult result;
+  CheckCache::CheckResult result;
   cache_->Check(attributes_, &result);
   EXPECT_FALSE(result.IsCacheHit());
 
@@ -190,7 +190,7 @@ TEST_F(CheckCacheTest, TestCachedSetResponse) {
   EXPECT_OK(result.status());
 
   // Found in the cache
-  CheckCache::CacheResult result1;
+  CheckCache::CheckResult result1;
   cache_->Check(attributes_, &result1);
   EXPECT_TRUE(result1.IsCacheHit());
   EXPECT_OK(result1.status());

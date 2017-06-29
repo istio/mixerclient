@@ -57,9 +57,9 @@ bool CheckCache::CacheElem::CacheElem::IsExpired(Tick time_now) {
   return false;
 }
 
-CheckCache::CacheResult::CacheResult() : status_(Code::UNAVAILABLE, "") {}
+CheckCache::CheckResult::CheckResult() : status_(Code::UNAVAILABLE, "") {}
 
-bool CheckCache::CacheResult::IsCacheHit() const {
+bool CheckCache::CheckResult::IsCacheHit() const {
   return status_.error_code() != Code::UNAVAILABLE;
 }
 
@@ -75,7 +75,7 @@ CheckCache::~CheckCache() {
   FlushAll();
 }
 
-void CheckCache::Check(const Attributes& attributes, CacheResult* result) {
+void CheckCache::Check(const Attributes& attributes, CheckResult* result) {
   std::string signature;
   Status status = Check(attributes, system_clock::now(), &signature);
   if (status.error_code() != Code::NOT_FOUND) {

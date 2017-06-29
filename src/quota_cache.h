@@ -47,9 +47,9 @@ class QuotaCache {
   // If send is true, make a remote call, on response.
   //     result->SetResponse(status, response);
   //     return result->Result();
-  class CacheResult {
+  class CheckResult {
    public:
-    CacheResult();
+    CheckResult();
 
     // Build CheckRequest::quotas fields, return true if remote quota call
     // is required.
@@ -90,12 +90,12 @@ class QuotaCache {
   };
 
   // Check quota cache for a request, result will be stored in CacaheResult.
-  void Quota(const Attributes& request, bool use_cache, CacheResult* result);
+  void Check(const Attributes& request, bool use_cache, CheckResult* result);
 
  private:
   // Check quota cache.
   void CheckCache(const Attributes& request, bool use_cache,
-                  CacheResult::Quota* quota);
+                  CheckResult::Quota* quota);
 
   // Invalidates expired check responses.
   // Called at time specified by GetNextFlushInterval().
@@ -111,7 +111,7 @@ class QuotaCache {
     CacheElem(const std::string& name);
 
     // Use the prefetch object to check the quota.
-    bool Quota(int amount, CacheResult::Quota* quota);
+    bool Quota(int amount, CheckResult::Quota* quota);
 
     // The quota name.
     const std::string& quota_name() const { return name_; }
@@ -123,7 +123,7 @@ class QuotaCache {
     std::string name_;
 
     // A temporary pending quota result.
-    CacheResult::Quota* quota_;
+    CheckResult::Quota* quota_;
 
     // The prefetch object.
     std::unique_ptr<QuotaPrefetch> prefetch_;

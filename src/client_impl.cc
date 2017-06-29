@@ -40,20 +40,20 @@ MixerClientImpl::MixerClientImpl(const MixerClientOptions &options)
 MixerClientImpl::~MixerClientImpl() {}
 
 void MixerClientImpl::Check(const Attributes &attributes, DoneFunc on_done) {
-  std::unique_ptr<CheckCache::CacheResult> check_result(
-      new CheckCache::CacheResult);
+  std::unique_ptr<CheckCache::CheckResult> check_result(
+      new CheckCache::CheckResult);
   check_cache_->Check(attributes, check_result.get());
   if (check_result->IsCacheHit() && !check_result->status().ok()) {
     on_done(check_result->status());
     return;
   }
 
-  std::unique_ptr<QuotaCache::CacheResult> quota_result(
-      new QuotaCache::CacheResult);
+  std::unique_ptr<QuotaCache::CheckResult> quota_result(
+      new QuotaCache::CheckResult);
   // Only use quota cache if Check is using cache with OK status.
   // Otherwise, a remote Check call may be rejected, but quota amounts were
   // substracted from quota cache already.
-  quota_cache_->Quota(attributes, check_result->IsCacheHit(),
+  quota_cache_->Check(attributes, check_result->IsCacheHit(),
                       quota_result.get());
 
   CheckRequest request;
@@ -72,8 +72,8 @@ void MixerClientImpl::Check(const Attributes &attributes, DoneFunc on_done) {
 
   auto response = new CheckResponse;
   // Lambda capture could not pass unique_ptr, use raw pointer.
-  CheckCache::CacheResult *raw_check_result = check_result.release();
-  QuotaCache::CacheResult *raw_quota_result = quota_result.release();
+  CheckCache::CheckResult *raw_check_result = check_result.release();
+  QuotaCache::CheckResult *raw_quota_result = quota_result.release();
   options_.check_transport(request, response,
                            [response, raw_check_result, raw_quota_result,
                             on_done](const Status &status) {

@@ -50,8 +50,8 @@ class QuotaCacheTest : public ::testing::Test {
 TEST_F(QuotaCacheTest, TestEmptyRequest) {
   // Quota is not required.
   Attributes empty_request;
-  QuotaCache::CacheResult result;
-  cache_->Quota(empty_request, true, &result);
+  QuotaCache::CheckResult result;
+  cache_->Check(empty_request, true, &result);
 
   CheckRequest request;
   EXPECT_FALSE(result.BuildRequest(&request));
@@ -66,8 +66,8 @@ TEST_F(QuotaCacheTest, TestDisabledCache) {
   cache_ = std::unique_ptr<QuotaCache>(new QuotaCache(options));
   ASSERT_TRUE((bool)(cache_));
 
-  QuotaCache::CacheResult result;
-  cache_->Quota(request_, true, &result);
+  QuotaCache::CheckResult result;
+  cache_->Check(request_, true, &result);
 
   CheckRequest request;
   EXPECT_TRUE(result.BuildRequest(&request));
@@ -87,8 +87,8 @@ TEST_F(QuotaCacheTest, TestDisabledCache) {
 }
 
 TEST_F(QuotaCacheTest, TestNotUseCache) {
-  QuotaCache::CacheResult result;
-  cache_->Quota(request_, false, &result);
+  QuotaCache::CheckResult result;
+  cache_->Check(request_, false, &result);
 
   CheckRequest request;
   EXPECT_TRUE(result.BuildRequest(&request));
@@ -109,8 +109,8 @@ TEST_F(QuotaCacheTest, TestNotUseCache) {
 }
 
 TEST_F(QuotaCacheTest, TestUseCache) {
-  QuotaCache::CacheResult result;
-  cache_->Quota(request_, true, &result);
+  QuotaCache::CheckResult result;
+  cache_->Check(request_, true, &result);
 
   CheckRequest request;
   EXPECT_TRUE(result.BuildRequest(&request));
@@ -140,8 +140,8 @@ TEST_F(QuotaCacheTest, TestUseCacheRejected) {
 
   int rejected = 0;
   for (int i = 0; i < 10; i++) {
-    QuotaCache::CacheResult result;
-    cache_->Quota(request_, true, &result);
+    QuotaCache::CheckResult result;
+    cache_->Check(request_, true, &result);
 
     CheckRequest request;
     result.BuildRequest(&request);

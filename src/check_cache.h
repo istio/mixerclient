@@ -48,9 +48,9 @@ class CheckCache {
   // Make remote call and on receiving response.
   //   result->SetReponse(status, response);
   //   return result->Status();
-  class CacheResult {
+  class CheckResult {
    public:
-    CacheResult();
+    CheckResult();
 
     bool IsCacheHit() const;
 
@@ -75,7 +75,7 @@ class CheckCache {
     OnResponseFunc on_response_;
   };
 
-  void Check(const Attributes& attributes, CacheResult* result);
+  void Check(const Attributes& attributes, CheckResult* result);
 
  private:
   friend class CheckCacheTest;
