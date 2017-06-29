@@ -28,11 +28,7 @@ namespace mixer_client {
 void CheckCache::CacheElem::CacheElem::SetResponse(
     const CheckResponse& response, Tick time_now) {
   if (response.has_precondition()) {
-    if (response.precondition().pass()) {
-      status_ = Status::OK;
-    } else {
-      status_ = ConvertRpcStatus(response.status());
-    }
+    status_ = ConvertRpcStatus(response.precondition().status());
 
     if (response.precondition().has_valid_duration()) {
       expire_time_ =
@@ -43,10 +39,10 @@ void CheckCache::CacheElem::CacheElem::SetResponse(
     }
     use_count_ = response.precondition().valid_use_count();
   } else {
-    status_ = ConvertRpcStatus(response.status());
-    // if no cachability specified, use it forever.
-    use_count_ = -1;  // -1 for not checking use_count
-    expire_time_ = time_point<system_clock>::max();
+    status_ = Status(Code::INVALID_ARGUMENT,
+                     "CheckResponse doesn't have PreconditionResult");
+    use_count_ = 0;           // 0 for not used this cache.
+    expire_time_ = time_now;  // expired now.
   }
 }
 
@@ -59,6 +55,12 @@ bool CheckCache::CacheElem::CacheElem::IsExpired(Tick time_now) {
     --use_count_;
   }
   return false;
+}
+
+CheckCache::CacheResult::CacheResult() : status_(Code::UNAVAILABLE, "") {}
+
+bool CheckCache::CacheResult::IsCacheHit() const {
+  return status_.error_code() != Code::UNAVAILABLE;
 }
 
 CheckCache::CheckCache(const CheckOptions& options) : options_(options) {
@@ -78,7 +80,6 @@ void CheckCache::Check(const Attributes& attributes, CacheResult* result) {
   Status status = Check(attributes, system_clock::now(), &signature);
   if (status.error_code() != Code::NOT_FOUND) {
     result->status_ = status;
-    return;
   }
 
   result->on_response_ = [this, signature](
@@ -127,7 +128,12 @@ Status CheckCache::Check(const Attributes& attributes, Tick time_now,
 Status CheckCache::CacheResponse(const std::string& signature,
                                  const CheckResponse& response, Tick time_now) {
   if (!cache_) {
-    return ConvertRpcStatus(response.status());
+    if (response.has_precondition()) {
+      return ConvertRpcStatus(response.precondition().status());
+    } else {
+      return Status(Code::INVALID_ARGUMENT,
+                    "CheckResponse doesn't have PreconditionResult");
+    }
   }
 
   std::lock_guard<std::mutex> lock(cache_mutex_);

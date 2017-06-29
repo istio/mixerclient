@@ -47,6 +47,7 @@ class CheckCacheTest : public ::testing::Test {
   void VerifyDisabledCache() {
     std::string signature;
     CheckResponse ok_response;
+    ok_response.mutable_precondition()->set_valid_use_count(1000);
     // Just to calculate signature
     EXPECT_ERROR_CODE(Code::NOT_FOUND,
                       cache_->Check(attributes_, FakeTime(0), &signature));
@@ -96,8 +97,8 @@ TEST_F(CheckCacheTest, TestNeverExpired) {
   EXPECT_ERROR_CODE(Code::NOT_FOUND,
                     Check(attributes_, FakeTime(0), &signature));
 
-  // A ok response without precondition:
   CheckResponse ok_response;
+  ok_response.mutable_precondition()->set_valid_use_count(10000);
   EXPECT_OK(CacheResponse(signature, ok_response, FakeTime(0)));
   for (int i = 0; i < 1000; ++i) {
     EXPECT_OK(Check(attributes_, FakeTime(i * 1000000), &signature));
@@ -150,6 +151,7 @@ TEST_F(CheckCacheTest, TestCacheResult) {
   EXPECT_FALSE(result.IsCacheHit());
 
   CheckResponse ok_response;
+  ok_response.mutable_precondition()->set_valid_use_count(1000);
   result.SetResponse(Status::OK, ok_response);
   EXPECT_OK(result.status());
 
@@ -159,6 +161,45 @@ TEST_F(CheckCacheTest, TestCacheResult) {
     EXPECT_TRUE(result.IsCacheHit());
     EXPECT_OK(result.status());
   }
+}
+
+TEST_F(CheckCacheTest, TestInvalidResult) {
+  CheckCache::CacheResult result;
+  cache_->Check(attributes_, &result);
+  EXPECT_FALSE(result.IsCacheHit());
+
+  // Precondition result is not set
+  CheckResponse ok_response;
+  result.SetResponse(Status::OK, ok_response);
+  EXPECT_ERROR_CODE(Code::INVALID_ARGUMENT, result.status());
+
+  // Not found due to last invalid result.
+  CheckCache::CacheResult result1;
+  cache_->Check(attributes_, &result1);
+  EXPECT_FALSE(result1.IsCacheHit());
+}
+
+TEST_F(CheckCacheTest, TestCachedSetResponse) {
+  CheckCache::CacheResult result;
+  cache_->Check(attributes_, &result);
+  EXPECT_FALSE(result.IsCacheHit());
+
+  CheckResponse ok_response;
+  ok_response.mutable_precondition()->set_valid_use_count(1000);
+  result.SetResponse(Status::OK, ok_response);
+  EXPECT_OK(result.status());
+
+  // Found in the cache
+  CheckCache::CacheResult result1;
+  cache_->Check(attributes_, &result1);
+  EXPECT_TRUE(result1.IsCacheHit());
+  EXPECT_OK(result1.status());
+
+  // Set a negative response.
+  ok_response.mutable_precondition()->mutable_status()->set_code(
+      Code::UNAVAILABLE);
+  result1.SetResponse(Status::OK, ok_response);
+  EXPECT_ERROR_CODE(Code::UNAVAILABLE, result1.status());
 }
 
 }  // namespace mixer_client

@@ -70,10 +70,6 @@ void MixerClientImpl::Check(const Attributes &attributes, DoneFunc on_done) {
   request.set_global_word_count(converter_.global_word_count());
   request.set_deduplication_id(std::to_string(deduplication_id_++));
 
-  if (!check_result->IsCacheHit()) {
-    request.set_preconditions(true);
-  }
-
   auto response = new CheckResponse;
   // Lambda capture could not pass unique_ptr, use raw pointer.
   CheckCache::CacheResult *raw_check_result = check_result.release();

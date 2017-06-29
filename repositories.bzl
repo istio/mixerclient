@@ -378,7 +378,7 @@ cc_proto_library(
 
     native.new_git_repository(
         name = "mixerapi_git",
-        commit = "a40a7d4dac3d6566f796c175eab626f91018c852",
+        commit = "68b06874cbe339f00918798683f865e38ddcbdd1",
         remote = "https://github.com/istio/api.git",
         build_file_content = BUILD,
     )

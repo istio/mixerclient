@@ -50,7 +50,9 @@ class CheckCache {
   //   return result->Status();
   class CacheResult {
    public:
-    bool IsCacheHit() const { return !on_response_; }
+    CacheResult();
+
+    bool IsCacheHit() const;
 
     ::google::protobuf::util::Status status() const { return status_; }
 
