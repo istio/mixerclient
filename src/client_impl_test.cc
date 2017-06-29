@@ -26,6 +26,9 @@ using ::testing::_;
 
 namespace istio {
 namespace mixer_client {
+namespace {
+
+const std::string kQuotaName = "RequestCount";
 
 // A mocking class to mock CheckTransport interface.
 class MockCheckTransport {
@@ -45,10 +48,16 @@ class MixerClientImplTest : public ::testing::Test {
         CheckOptions(1 /*entries */), ReportOptions(1, 1000),
         QuotaOptions(1 /* entries */, 600000 /* expiration_ms */));
     options.check_options.network_fail_open = false;
+    options.check_options.cache_keys.push_back(
+        "key");  // to enable check cache.
     options.check_transport = mock_check_transport_.GetFunc();
     client_ = CreateMixerClient(options);
+
+    request_.attributes[Attributes::kQuotaName] =
+        Attributes::StringValue(kQuotaName);
   }
 
+  Attributes request_;
   std::unique_ptr<MixerClient> client_;
   MockCheckTransport mock_check_transport_;
 };
@@ -61,12 +70,20 @@ TEST_F(MixerClientImplTest, TestSuccessCheck) {
         on_done(Status::OK);
       }));
 
-  Attributes attributes;
+  // Remove quota, not to test quota
+  request_.attributes.erase(Attributes::kQuotaName);
   Status done_status = Status::UNKNOWN;
-  client_->Check(attributes,
+  client_->Check(request_,
                  [&done_status](Status status) { done_status = status; });
   EXPECT_TRUE(done_status.ok());
+
+  // Second call should ba cached.
+  Status done_status1 = Status::UNKNOWN;
+  client_->Check(request_,
+                 [&done_status1](Status status) { done_status1 = status; });
+  EXPECT_TRUE(done_status1.ok());
 }
 
+}  // namespace
 }  // namespace mixer_client
 }  // namespace istio
