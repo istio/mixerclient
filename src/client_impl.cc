@@ -52,6 +52,8 @@ MixerClientImpl::MixerClientImpl(const MixerClientOptions &options)
                       options.timer_create_func, converter_));
   quota_cache_ =
       std::unique_ptr<QuotaCache>(new QuotaCache(options.quota_options));
+
+  deduplication_id_base_ = GenerateUUID();
 }
 
 MixerClientImpl::~MixerClientImpl() {}
@@ -85,7 +87,8 @@ void MixerClientImpl::Check(const Attributes &attributes, DoneFunc on_done) {
 
   converter_.Convert(attributes, request.mutable_attributes());
   request.set_global_word_count(converter_.global_word_count());
-  request.set_deduplication_id(GenerateUUID());
+  request.set_deduplication_id(deduplication_id_base_ +
+                               std::to_string(deduplication_id_.fetch_add(1)));
 
   auto response = new CheckResponse;
   // Lambda capture could not pass unique_ptr, use raw pointer.
