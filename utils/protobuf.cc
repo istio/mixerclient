@@ -25,6 +25,13 @@ using ::google::protobuf::util::error::Code;
 
 namespace istio {
 namespace mixer_client {
+namespace {
+
+// The error substring for Invalid dictionary.
+const char* kInvalidDictionarySubstring =
+    "not defined in the available dictionaries";
+
+}  // namespace
 
 // Convert timestamp from time_point to Timestamp
 Timestamp CreateTimestamp(system_clock::time_point tp) {
@@ -50,6 +57,12 @@ milliseconds ToMilliseonds(const Duration& duration) {
 
 Status ConvertRpcStatus(const ::google::rpc::Status& status) {
   return Status(static_cast<Code>(status.code()), status.message());
+}
+
+bool InvalidDictionaryStatus(const Status& status) {
+  return status.error_code() == Code::INVALID_ARGUMENT &&
+         strstr(status.error_message().data(), kInvalidDictionarySubstring) !=
+             nullptr;
 }
 
 }  // namespace mixer_client
