@@ -27,8 +27,9 @@ namespace istio {
 namespace mixer_client {
 namespace {
 
-// The error substring for Invalid dictionary.
-const char* kInvalidDictionarySubstring = "due to invalid attributes";
+// The error string prefix for Invalid dictionary.
+const char* kInvalidDictionaryErrorPrefix =
+    "Request could not be processed due to invalid";
 
 }  // namespace
 
@@ -60,8 +61,7 @@ Status ConvertRpcStatus(const ::google::rpc::Status& status) {
 
 bool InvalidDictionaryStatus(const Status& status) {
   return status.error_code() == Code::INVALID_ARGUMENT &&
-         strstr(status.error_message().data(), kInvalidDictionarySubstring) !=
-             nullptr;
+         status.error_message().starts_with(kInvalidDictionaryErrorPrefix);
 }
 
 }  // namespace mixer_client
