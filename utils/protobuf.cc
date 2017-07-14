@@ -28,8 +28,7 @@ namespace mixer_client {
 namespace {
 
 // The error substring for Invalid dictionary.
-const char* kInvalidDictionarySubstring =
-    "due to invalid attributes";
+const char* kInvalidDictionarySubstring = "due to invalid attributes";
 
 }  // namespace
 
