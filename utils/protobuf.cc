@@ -29,7 +29,7 @@ namespace {
 
 // The error substring for Invalid dictionary.
 const char* kInvalidDictionarySubstring =
-    "not defined in the available dictionaries";
+    "due to invalid attributes";
 
 }  // namespace
 
