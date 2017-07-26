@@ -376,9 +376,10 @@ cc_proto_library(
 )
 """.format(protobuf_repo)
 
+    MIXER_API = "ee9769f5b3304d9e01cd7ed6fb1dbb9b08e96210"
     native.new_git_repository(
         name = "mixerapi_git",
-        commit = "ee9769f5b3304d9e01cd7ed6fb1dbb9b08e96210",
+        commit = MIXER_API,
         remote = "https://github.com/istio/api.git",
         build_file_content = BUILD,
     )
