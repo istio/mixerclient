@@ -1,0 +1,8 @@
+[
+	{
+		"name": "MIXER_API",
+		"repoName": "api",
+		"prodBranch": "master",
+		"file": "repositories.bzl"
+	}
+]
