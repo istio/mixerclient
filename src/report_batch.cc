@@ -33,7 +33,13 @@ ReportBatch::ReportBatch(const ReportOptions& options,
       timer_create_(timer_create),
       converter_(converter) {}
 
-ReportBatch::~ReportBatch() { Flush(); }
+ReportBatch::~ReportBatch() {
+  // Not to flush out batched data
+  // At this time, transport may have been gone.
+  if (timer_) {
+    timer_->Stop();
+  }
+}
 
 void ReportBatch::Report(const Attributes& request) {
   std::lock_guard<std::mutex> lock(mutex_);
