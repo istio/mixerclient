@@ -25,7 +25,7 @@ using ::google::protobuf::util::error::Code;
 namespace istio {
 namespace mixer_client {
 
-  MixerClientImpl::MixerClientImpl(const MixerClientOptions &options)
+MixerClientImpl::MixerClientImpl(const MixerClientOptions &options)
     : options_(options) {
   check_cache_ =
       std::unique_ptr<CheckCache>(new CheckCache(options.check_options));
