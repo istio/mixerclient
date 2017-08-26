@@ -22,10 +22,6 @@ using ::istio::mixer::v1::CheckResponse;
 
 namespace istio {
 namespace mixer_client {
-namespace {
-const char kDelimiter[] = "\0";
-const int kDelimiterLength = 1;
-}  // namespace
 
 string GenerateSignature(const Attributes& attributes,
                          const CacheKeySet& cache_keys) {

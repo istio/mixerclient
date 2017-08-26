@@ -27,7 +27,7 @@
 #include "google/protobuf/stubs/status.h"
 #include "include/client.h"
 #include "include/options.h"
-#include "src/cache_key_set.h"
+#include "src/referenced.h"
 #include "utils/simple_lru_cache.h"
 #include "utils/simple_lru_cache_inl.h"
 
@@ -139,8 +139,8 @@ class CheckCache {
   // The check options.
   CheckOptions options_;
 
-  // The cache keys.
-  std::unique_ptr<CacheKeySet> cache_keys_;
+  // Referenced map keyed with their hashes
+  std::unordered_map<std::string, Referenced> referenced_map_;
 
   // Mutex guarding the access of cache_;
   std::mutex cache_mutex_;

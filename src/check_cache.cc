@@ -103,6 +103,8 @@ Status CheckCache::Check(const Attributes& attributes, Tick time_now,
     return Status(Code::NOT_FOUND, "");
   }
 
+    if (referenced_map_.find(hash) == referenced_map_.end()) {
+
   std::string signature = GenerateSignature(attributes, *cache_keys_);
   if (ret_signature) {
     *ret_signature = signature;
@@ -125,9 +127,9 @@ Status CheckCache::Check(const Attributes& attributes, Tick time_now,
   return elem->status();
 }
 
-Status CheckCache::CacheResponse(const std::string& signature,
+Status CheckCache::CacheResponse(const Attributes& attributes,
                                  const CheckResponse& response, Tick time_now) {
-  if (!cache_) {
+  if (!cache_ || !response.has_precondition()) {
     if (response.has_precondition()) {
       return ConvertRpcStatus(response.precondition().status());
     } else {
@@ -136,9 +138,24 @@ Status CheckCache::CacheResponse(const std::string& signature,
     }
   }
 
-  std::lock_guard<std::mutex> lock(cache_mutex_);
-  CheckLRUCache::ScopedLookup lookup(cache_.get(), signature);
+  Referenced referenced;
+  if (!referenced.Fill(response.precondition().referenced_attributes())) {
+    // Failed to decode referenced_attributes, not to cache this result.
+      return ConvertRpcStatus(response.precondition().status());
+  }
+  std::string signature;
+  if (!referenced.Signature(attributes, &signature)) {
+    GOOGLE_LOG(ERROR) << "Response referenced mismatchs with request";
+    return ConvertRpcStatus(response.precondition().status());
+  }
 
+  std::lock_guard<std::mutex> lock(cache_mutex_);
+  std::string hash = referenced.Hash();
+  if (referenced_map_.find(hash) == referenced_map_.end()) {
+    referenced_map_[hash] = referenced;
+  }
+  
+  CheckLRUCache::ScopedLookup lookup(cache_.get(), signature);
   if (lookup.Found()) {
     lookup.value()->SetResponse(response, time_now);
     return lookup.value()->status();
