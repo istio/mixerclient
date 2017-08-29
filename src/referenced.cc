@@ -41,8 +41,8 @@ bool Referenced::Fill(const ReferencedAttributes& reference) {
     int idx = match.name();
     if (idx >= 0) {
       if ((unsigned int)idx >= global_words.size()) {
-        GOOGLE_LOG(ERROR) << "Global word index is too big: " << idx << " vs "
-                          << global_words.size();
+        GOOGLE_LOG(ERROR) << "Global word index is too big: " << idx
+                          << " >= " << global_words.size();
         return false;
       }
       name = global_words[idx];
@@ -52,7 +52,7 @@ bool Referenced::Fill(const ReferencedAttributes& reference) {
       idx = -idx - 1;
       if (idx >= reference.words_size()) {
         GOOGLE_LOG(ERROR) << "Per message word index is too big: " << idx
-                          << " vs " << reference.words_size();
+                          << " >= " << reference.words_size();
         return false;
       }
       name = reference.words(idx);

@@ -76,15 +76,6 @@ TEST_F(CheckCacheTest, TestDisableCacheFromZeroCacheSize) {
   VerifyDisabledCache();
 }
 
-TEST_F(CheckCacheTest, TestDisableCacheFromEmptyCacheKeys) {
-  // empty cache keys. cache is disabled
-  CheckOptions options(1000 /*entries*/);
-  cache_ = std::unique_ptr<CheckCache>(new CheckCache(options));
-
-  ASSERT_TRUE((bool)(cache_));
-  VerifyDisabledCache();
-}
-
 TEST_F(CheckCacheTest, TestNeverExpired) {
   EXPECT_ERROR_CODE(Code::NOT_FOUND, Check(attributes_, FakeTime(0)));
 
