@@ -13,24 +13,41 @@
  * limitations under the License.
  */
 
-// Utility functions used to generate signature for operations, metric values,
-// and check requests.
+#include "src/referenced.h"
 
-#ifndef MIXER_CLIENT_SIGNATURE_H_
-#define MIXER_CLIENT_SIGNATURE_H_
+#include "google/protobuf/text_format.h"
+#include "gtest/gtest.h"
 
-#include <string>
-#include "include/client.h"
-#include "src/cache_key_set.h"
+using ::google::protobuf::TextFormat;
 
 namespace istio {
 namespace mixer_client {
+namespace {
 
-// Generates signature for Attributes.
-std::string GenerateSignature(const Attributes& attributes,
-                              const CacheKeySet& cache_keys);
+const char kReferencedText1[] = R"(
+words: "bool-key"
+words: "bytes-key"
+attribute_matches {
+  name: 9,
+  condition: ABSENCE,
+}
+attribute_matches {
+  name: -1,
+  condition: EXACT,
+})";
 
+TEST(ReferencedTest, FillTest) {
+  ::istio::mixer::v1::ReferencedAttributes referenced_pb;
+  ASSERT_TRUE(TextFormat::ParseFromString(kReferencedText1, &referenced_pb));
+
+  Referenced referenced;
+  EXPECT_TRUE(referenced.Fill(referenced_pb));
+
+  EXPECT_EQ(referenced.DebugString(), "");
+
+  EXPECT_EQ(referenced.Hash(), "");
+}
+
+}  // namespace
 }  // namespace mixer_client
 }  // namespace istio
-
-#endif  // MIXER_CLIENT_SIGNATURE_H_
