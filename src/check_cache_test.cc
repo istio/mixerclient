@@ -21,6 +21,7 @@
 
 using namespace std::chrono;
 using ::istio::mixer::v1::CheckResponse;
+using ::istio::mixer::v1::ReferencedAttributes;
 using ::google::protobuf::util::Status;
 using ::google::protobuf::util::error::Code;
 
@@ -34,11 +35,11 @@ time_point<system_clock> FakeTime(int t) {
 class CheckCacheTest : public ::testing::Test {
  public:
   void SetUp() {
-    CheckOptions options(1 /*entries*/);
+    CheckOptions options;
     cache_ = std::unique_ptr<CheckCache>(new CheckCache(options));
     ASSERT_TRUE((bool)(cache_));
 
-    attributes_.attributes["string-key"] =
+    attributes_.attributes["target.service"] =
         Attributes::StringValue("this-is-a-string-value");
   }
 
@@ -176,6 +177,142 @@ TEST_F(CheckCacheTest, TestCachedSetResponse) {
       Code::UNAVAILABLE);
   result1.SetResponse(Status::OK, attributes_, ok_response);
   EXPECT_ERROR_CODE(Code::UNAVAILABLE, result1.status());
+}
+
+TEST_F(CheckCacheTest, TestWithInvalidReferenced) {
+  CheckCache::CheckResult result;
+  cache_->Check(attributes_, &result);
+  EXPECT_FALSE(result.IsCacheHit());
+
+  CheckResponse ok_response;
+  ok_response.mutable_precondition()->set_valid_use_count(1000);
+  auto match = ok_response.mutable_precondition()
+                   ->mutable_referenced_attributes()
+                   ->add_attribute_matches();
+  match->set_condition(ReferencedAttributes::ABSENCE);
+  match->set_name(10000);  // global index is too big
+
+  // The status for the current check is still OK
+  result.SetResponse(Status::OK, attributes_, ok_response);
+  EXPECT_OK(result.status());
+
+  // Since previous result was not saved to cache, this should not be cache hit
+  CheckCache::CheckResult result1;
+  cache_->Check(attributes_, &result1);
+  EXPECT_FALSE(result1.IsCacheHit());
+}
+
+TEST_F(CheckCacheTest, TestWithMismatchedReferenced) {
+  CheckCache::CheckResult result;
+  cache_->Check(attributes_, &result);
+  EXPECT_FALSE(result.IsCacheHit());
+
+  CheckResponse ok_response;
+  ok_response.mutable_precondition()->set_valid_use_count(1000);
+  // Requires target.service to be absence
+  // But this attribute is in the request, the response is not saved to cache
+  auto match = ok_response.mutable_precondition()
+                   ->mutable_referenced_attributes()
+                   ->add_attribute_matches();
+  match->set_condition(ReferencedAttributes::ABSENCE);
+  match->set_name(9);
+
+  // The status for the current check is still OK
+  result.SetResponse(Status::OK, attributes_, ok_response);
+  EXPECT_OK(result.status());
+
+  // Since previous result was not saved to cache, this should not be cache hit
+  CheckCache::CheckResult result1;
+  cache_->Check(attributes_, &result1);
+  EXPECT_FALSE(result1.IsCacheHit());
+}
+
+TEST_F(CheckCacheTest, TestTwoCacheKeys) {
+  CheckCache::CheckResult result;
+  cache_->Check(attributes_, &result);
+  EXPECT_FALSE(result.IsCacheHit());
+
+  CheckResponse ok_response;
+  ok_response.mutable_precondition()->set_valid_use_count(1000);
+  auto match = ok_response.mutable_precondition()
+                   ->mutable_referenced_attributes()
+                   ->add_attribute_matches();
+  match->set_condition(ReferencedAttributes::EXACT);
+  match->set_name(9);  // target.service is used.
+
+  result.SetResponse(Status::OK, attributes_, ok_response);
+  EXPECT_OK(result.status());
+
+  // Cached response is used.
+  CheckCache::CheckResult result1;
+  cache_->Check(attributes_, &result1);
+  EXPECT_TRUE(result1.IsCacheHit());
+
+  Attributes attributes1;
+  attributes1.attributes["target.service"] =
+      Attributes::StringValue("different target service");
+
+  // Not in the cache since it has different value
+  CheckCache::CheckResult result2;
+  cache_->Check(attributes1, &result2);
+  EXPECT_FALSE(result2.IsCacheHit());
+
+  // Store the response to the cache
+  result2.SetResponse(Status::OK, attributes1, ok_response);
+  EXPECT_OK(result.status());
+
+  // Now it should be in the cache.
+  CheckCache::CheckResult result3;
+  cache_->Check(attributes1, &result3);
+  EXPECT_TRUE(result3.IsCacheHit());
+
+  // Also make sure key1 still in the cache
+  CheckCache::CheckResult result4;
+  cache_->Check(attributes_, &result4);
+  EXPECT_TRUE(result4.IsCacheHit());
+}
+
+TEST_F(CheckCacheTest, TestTwoReferenced) {
+  CheckCache::CheckResult result;
+  cache_->Check(attributes_, &result);
+  EXPECT_FALSE(result.IsCacheHit());
+
+  CheckResponse ok_response;
+  ok_response.mutable_precondition()->set_valid_use_count(1000);
+  auto match = ok_response.mutable_precondition()
+                   ->mutable_referenced_attributes()
+                   ->add_attribute_matches();
+  match->set_condition(ReferencedAttributes::EXACT);
+  match->set_name(9);  // target.service is used.
+  result.SetResponse(Status::OK, attributes_, ok_response);
+
+  Attributes attributes1;
+  attributes1.attributes["target.name"] =
+      Attributes::StringValue("target name");
+
+  // Not in the cache since it has different value
+  CheckCache::CheckResult result1;
+  cache_->Check(attributes1, &result1);
+  EXPECT_FALSE(result1.IsCacheHit());
+
+  // Store the response to the cache
+  CheckResponse ok_response1;
+  ok_response1.mutable_precondition()->set_valid_use_count(1000);
+  auto match1 = ok_response1.mutable_precondition()
+                    ->mutable_referenced_attributes()
+                    ->add_attribute_matches();
+  match1->set_condition(ReferencedAttributes::EXACT);
+  match1->set_name(10);  // target.name is used.
+  result1.SetResponse(Status::OK, attributes1, ok_response1);
+
+  // Now both should be in the cache.
+  CheckCache::CheckResult result2;
+  cache_->Check(attributes_, &result2);
+  EXPECT_TRUE(result2.IsCacheHit());
+
+  CheckCache::CheckResult result3;
+  cache_->Check(attributes1, &result3);
+  EXPECT_TRUE(result3.IsCacheHit());
 }
 
 }  // namespace mixer_client

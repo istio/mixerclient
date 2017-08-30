@@ -141,6 +141,8 @@ Status CheckCache::CacheResponse(const Attributes& attributes,
   std::string signature;
   if (!referenced.Signature(attributes, &signature)) {
     GOOGLE_LOG(ERROR) << "Response referenced mismatchs with request";
+    GOOGLE_LOG(ERROR) << "Request attributes: " << attributes.DebugString();
+    GOOGLE_LOG(ERROR) << "Referenced attributes: " << referenced.DebugString();
     return ConvertRpcStatus(response.precondition().status());
   }
 
