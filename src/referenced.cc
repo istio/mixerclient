@@ -62,6 +62,11 @@ bool Referenced::Fill(const ReferencedAttributes& reference) {
       absence_keys_.push_back(name);
     } else if (match.condition() == ReferencedAttributes::EXACT) {
       exact_keys_.push_back(name);
+    } else if (match.condition() == ReferencedAttributes::REGEX) {
+      // Don't support REGEX yet, return false to no caching the response.
+      GOOGLE_LOG(ERROR) << "Received REGEX in ReferencedAttributes for "
+                        << name;
+      return false;
     }
   }
 

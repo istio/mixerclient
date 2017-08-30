@@ -30,7 +30,7 @@ namespace mixer_client {
 class Referenced {
  public:
   // Fill the object from the protobuf from Check response.
-  // Return false if any attribute names could be be decoded from client
+  // Return false if any attribute names could not be decoded from client
   // global dictionary.
   bool Fill(const ::istio::mixer::v1::ReferencedAttributes& reference);
 
