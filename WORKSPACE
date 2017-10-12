@@ -17,17 +17,19 @@
 load(
     "//:repositories.bzl",
     "boringssl_repositories",
-    "protobuf_repositories",
     "googletest_repositories",
-    "googleapis_repositories",
-    "mixerapi_repositories",
 )
 
 boringssl_repositories()
-protobuf_repositories()
 googletest_repositories()
-googleapis_repositories()
-mixerapi_repositories()
+
+ISTIO_API = "b3db849962f8dfe18bc90aa589bef1911b7ba41d" # Oct 11, 2017
+
+git_repository(
+    name = "io_istio_api",
+    commit = ISTIO_API,
+    remote = "https://github.com/istio/api.git",
+)
 
 git_repository(
     name = "io_bazel_rules_go",
@@ -39,6 +41,6 @@ load("@io_bazel_rules_go//go:def.bzl", "go_repositories", "go_repository")
 
 go_repositories()
 
-load("@mixerapi_git//:api.bzl", "go_istio_api_dependencies")
+load("@io_istio_api//:api.bzl", "go_istio_api_dependencies")
 
 go_istio_api_dependencies()
