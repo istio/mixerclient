@@ -24,12 +24,12 @@ py_binary(
 genrule(
    name = "global_dictionary_header_gen",
    srcs = [
-       "@mixerapi_git//:mixer/v1/global_dictionary.yaml",
+       "@mixerapi_git//mixer/v1:attributes_file",
    ],
    outs = [
        "src/global_dictionary.cc",
    ],
-   cmd = "$(location //:create_global_dictionary) $(location @mixerapi_git//:mixer/v1/global_dictionary.yaml) > $@",
+   cmd = "$(location //:create_global_dictionary) $(location @mixerapi_git//mixer/v1:attributes_file) > $@",
    tools = [
         "//:create_global_dictionary",
    ],
@@ -70,9 +70,9 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":simple_lru_cache",
-	"//prefetch:quota_prefetch_lib",
+        "//prefetch:quota_prefetch_lib",
         "//external:boringssl_crypto",
-        "//external:mixer_api_cc_proto",
+        "@mixerapi_git//:mixer_api_cc_proto",
     ],
 )
 

@@ -332,7 +332,7 @@ cc_proto_library(
             actual = "@gogoproto_git//:cc_gogoproto_genproto",
         )
 
-ISTIO_API = "32e95fc675f9c4a41f3e88a9ef84d68ca220c968"
+ISTIO_API = "3e3fd02fdd45ec7abd4b09af9d0c548634950973"
 
 def mixerapi_repositories(protobuf_repo="@protobuf_bzl//", bind=True):
     gogoproto_repositories(bind)
@@ -358,8 +358,6 @@ licenses(["notice"])
 
 load("{}:protobuf.bzl", "cc_proto_library")
 
-exports_files(["mixer/v1/global_dictionary.yaml"])
-
 cc_proto_library(
     name = "mixer_api_cc_proto",
     srcs = glob(
@@ -376,11 +374,12 @@ cc_proto_library(
 )
 """.format(protobuf_repo)
 
-    native.new_git_repository(
+    native.new_http_archive(
         name = "mixerapi_git",
-        commit = ISTIO_API,
-        remote = "https://github.com/istio/api.git",
+        strip_prefix = "api-" + ISTIO_API,
+        urls = ["https://github.com/istio/api/archive/" + ISTIO_API +".tar.gz"],
         build_file_content = BUILD,
+        workspace_file_content = "",
     )
     if bind:
         native.bind(
