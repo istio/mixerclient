@@ -23,7 +23,7 @@ load(
 boringssl_repositories()
 googletest_repositories()
 
-ISTIO_API = "fadf8937f1e3b88a0a5fb7325d34259f0d65d947" # Oct 11, 2017
+ISTIO_API = "30fdd4c3e973b6dc7bfd4a019820e3b2c28e9a70"
 
 git_repository(
     name = "io_istio_api",
