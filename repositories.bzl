@@ -126,11 +126,12 @@ cc_library(
     visibility = ["//visibility:public"],
 )
 """
-    native.new_git_repository(
+    native.new_local_repository(
         name = "googletest_git",
         build_file_content = BUILD,
-        commit = "d225acc90bc3a8c420a9bcd1f033033c1ccd7fe0",
-        remote = "https://github.com/google/googletest.git",
+	path = "../api",
+#        commit = "d225acc90bc3a8c420a9bcd1f033033c1ccd7fe0",
+#        remote = "https://github.com/google/googletest.git",
     )
 
     if bind:

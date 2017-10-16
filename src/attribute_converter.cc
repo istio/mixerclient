@@ -75,7 +75,7 @@ class MessageDictionary {
 
 bool ConvertToPb(const Attributes& attributes, MessageDictionary& dict,
                  DeltaUpdate& delta_update,
-                 ::istio::mixer::v1::Attributes* pb) {
+                 ::istio::mixer::v1::CompressedAttributes* pb) {
   delta_update.Start();
 
   // Fill attributes.
