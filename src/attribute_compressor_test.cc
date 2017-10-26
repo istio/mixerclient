@@ -188,20 +188,20 @@ class AttributeCompressorTest : public ::testing::Test {
     // if a word has to be in the per-message dictionary, its index depends
     // on the order it created.
     AttributesBuilder builder(&attributes_);
-    builder.AddString("source.name", "connection.received.bytes_total")
-        .AddBytes("source.ip", "text/html; charset=utf-8")
-        .AddDouble("range", 99.9)
-        .AddInt64("source.port", 35)
-        .AddBool("keep-alive", true)
-        .AddString("source.user", "x-http-method-override")
-        .AddInt64("target.port", 8080);
+    builder.AddString("source.name", "connection.received.bytes_total");
+    builder.AddBytes("source.ip", "text/html; charset=utf-8");
+    builder.AddDouble("range", 99.9);
+    builder.AddInt64("source.port", 35);
+    builder.AddBool("keep-alive", true);
+    builder.AddString("source.user", "x-http-method-override");
+    builder.AddInt64("target.port", 8080);
 
     std::chrono::time_point<std::chrono::system_clock> time_point;
     std::chrono::seconds secs(5);
-    builder.AddTimestamp("context.timestamp", time_point)
-        .AddDuration(
-            "response.duration",
-            std::chrono::duration_cast<std::chrono::nanoseconds>(secs));
+    builder.AddTimestamp("context.timestamp", time_point);
+    builder.AddDuration(
+        "response.duration",
+        std::chrono::duration_cast<std::chrono::nanoseconds>(secs));
 
     // JWT-token is only word not in the global dictionary.
     std::map<std::string, std::string> string_map = {
@@ -238,12 +238,12 @@ TEST_F(AttributeCompressorTest, BatchCompressTest) {
 
   // modify some attributes
   AttributesBuilder builder(&attributes_);
-  builder.AddDouble("range", 123.99)
-      .AddInt64("source.port", 135)
-      .AddInt64("response.size", 111)
-      .AddBool("keep-alive", false)
-      .AddStringMap("request.headers",
-                    {{"content-type", "application/json"}, {":method", "GET"}});
+  builder.AddDouble("range", 123.99);
+  builder.AddInt64("source.port", 135);
+  builder.AddInt64("response.size", 111);
+  builder.AddBool("keep-alive", false);
+  builder.AddStringMap("request.headers", {{"content-type", "application/json"},
+                                           {":method", "GET"}});
 
   // Since there is no deletion, batch is good
   EXPECT_TRUE(batch_compressor->Add(attributes_));

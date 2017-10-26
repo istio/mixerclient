@@ -34,34 +34,28 @@ class AttributesBuilder {
   AttributesBuilder(::istio::mixer::v1::Attributes* attributes)
       : attributes_(attributes) {}
 
-  AttributesBuilder& AddString(const std::string key, const std::string& str) {
+  void AddString(const std::string key, const std::string& str) {
     (*attributes_->mutable_attributes())[key].set_string_value(str);
-    return *this;
   }
 
-  AttributesBuilder& AddBytes(const std::string key, const std::string& bytes) {
+  void AddBytes(const std::string key, const std::string& bytes) {
     (*attributes_->mutable_attributes())[key].set_bytes_value(bytes);
-    return *this;
   }
 
-  AttributesBuilder& AddInt64(const std::string key, int64_t value) {
+  void AddInt64(const std::string key, int64_t value) {
     (*attributes_->mutable_attributes())[key].set_int64_value(value);
-    return *this;
   }
 
-  AttributesBuilder& AddDouble(const std::string key, double value) {
+  void AddDouble(const std::string key, double value) {
     (*attributes_->mutable_attributes())[key].set_double_value(value);
-    return *this;
   }
 
-  AttributesBuilder& AddBool(const std::string key, bool value) {
+  void AddBool(const std::string key, bool value) {
     (*attributes_->mutable_attributes())[key].set_bool_value(value);
-    return *this;
   }
 
-  AttributesBuilder& AddTimestamp(
-      const std::string key,
-      std::chrono::time_point<std::chrono::system_clock> value) {
+  void AddTimestamp(const std::string key,
+                    std::chrono::time_point<std::chrono::system_clock> value) {
     auto time_stamp =
         (*attributes_->mutable_attributes())[key].mutable_timestamp_value();
     long long nanos = std::chrono::duration_cast<std::chrono::nanoseconds>(
@@ -69,20 +63,17 @@ class AttributesBuilder {
                           .count();
     time_stamp->set_seconds(nanos / 1000000000);
     time_stamp->set_nanos(nanos % 1000000000);
-    return *this;
   }
 
-  AttributesBuilder& AddDuration(const std::string key,
-                                 std::chrono::nanoseconds value) {
+  void AddDuration(const std::string key, std::chrono::nanoseconds value) {
     auto duration =
         (*attributes_->mutable_attributes())[key].mutable_duration_value();
     duration->set_seconds(value.count() / 1000000000);
     duration->set_nanos(value.count() % 1000000000);
-    return *this;
   }
 
-  AttributesBuilder& AddStringMap(
-      const std::string key, std::map<std::string, std::string>&& string_map) {
+  void AddStringMap(const std::string key,
+                    std::map<std::string, std::string>&& string_map) {
     auto entries = (*attributes_->mutable_attributes())[key]
                        .mutable_string_map_value()
                        ->mutable_entries();
@@ -90,7 +81,6 @@ class AttributesBuilder {
     for (const auto& map_it : string_map) {
       (*entries)[map_it.first] = map_it.second;
     }
-    return *this;
   }
 
  private:

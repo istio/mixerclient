@@ -156,17 +156,18 @@ TEST(ReferencedTest, OKSignature1Test) {
 
   Attributes attributes;
   AttributesBuilder builder(&attributes);
-  builder.AddString("string-key", "this is a string value")
-      .AddBytes("bytes-key", "this is a bytes value")
-      .AddDouble("double-key", 99.9)
-      .AddInt64("int-key", 35)
-      .AddBool("bool-key", true);
+  builder.AddString("string-key", "this is a string value");
+  builder.AddBytes("bytes-key", "this is a bytes value");
+  builder.AddDouble("double-key", 99.9);
+  builder.AddInt64("int-key", 35);
+  builder.AddBool("bool-key", true);
 
   std::chrono::time_point<std::chrono::system_clock> time0;
   std::chrono::seconds secs(5);
-  builder.AddTimestamp("time-key", time0)
-      .AddDuration("duration-key",
-                   std::chrono::duration_cast<std::chrono::nanoseconds>(secs));
+  builder.AddTimestamp("time-key", time0);
+  builder.AddDuration(
+      "duration-key",
+      std::chrono::duration_cast<std::chrono::nanoseconds>(secs));
 
   std::map<std::string, std::string> string_map = {{"key1", "value1"},
                                                    {"key2", "value2"}};
