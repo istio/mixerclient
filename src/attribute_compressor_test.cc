@@ -187,7 +187,7 @@ class AttributeCompressorTest : public ::testing::Test {
     // Otherwise test is flaky since protobuf::map order is not deterministic
     // if a word has to be in the per-message dictionary, its index depends
     // on the order it created.
-    AttributesBuilder builder(attributes_);
+    AttributesBuilder builder(&attributes_);
     builder.AddString("source.name", "connection.received.bytes_total")
         .AddBytes("source.ip", "text/html; charset=utf-8")
         .AddDouble("range", 99.9)
@@ -237,7 +237,7 @@ TEST_F(AttributeCompressorTest, BatchCompressTest) {
   EXPECT_TRUE(batch_compressor->Add(attributes_));
 
   // modify some attributes
-  AttributesBuilder builder(attributes_);
+  AttributesBuilder builder(&attributes_);
   builder.AddDouble("range", 123.99)
       .AddInt64("source.port", 135)
       .AddInt64("response.size", 111)

@@ -41,7 +41,7 @@ class CheckCacheTest : public ::testing::Test {
     cache_ = std::unique_ptr<CheckCache>(new CheckCache(options));
     ASSERT_TRUE((bool)(cache_));
 
-    AttributesBuilder(attributes_)
+    AttributesBuilder(&attributes_)
         .AddString("target.service", "this-is-a-string-value");
   }
 
@@ -251,7 +251,7 @@ TEST_F(CheckCacheTest, TestTwoCacheKeys) {
   EXPECT_TRUE(result1.IsCacheHit());
 
   Attributes attributes1;
-  AttributesBuilder(attributes1)
+  AttributesBuilder(&attributes1)
       .AddString("target.service", "different target service");
 
   // Not in the cache since it has different value
@@ -289,7 +289,7 @@ TEST_F(CheckCacheTest, TestTwoReferenced) {
   result.SetResponse(Status::OK, attributes_, ok_response);
 
   Attributes attributes1;
-  AttributesBuilder(attributes1).AddString("target.name", "target name");
+  AttributesBuilder(&attributes1).AddString("target.name", "target name");
 
   // Not in the cache since it has different value
   CheckCache::CheckResult result1;

@@ -31,31 +31,31 @@ namespace mixer_client {
 //                      .Add("key2", value2);
 class AttributesBuilder {
  public:
-  AttributesBuilder(::istio::mixer::v1::Attributes& attributes)
+  AttributesBuilder(::istio::mixer::v1::Attributes* attributes)
       : attributes_(attributes) {}
 
   AttributesBuilder& AddString(const std::string key, const std::string& str) {
-    (*attributes_.mutable_attributes())[key].set_string_value(str);
+    (*attributes_->mutable_attributes())[key].set_string_value(str);
     return *this;
   }
 
   AttributesBuilder& AddBytes(const std::string key, const std::string& bytes) {
-    (*attributes_.mutable_attributes())[key].set_bytes_value(bytes);
+    (*attributes_->mutable_attributes())[key].set_bytes_value(bytes);
     return *this;
   }
 
   AttributesBuilder& AddInt64(const std::string key, int64_t value) {
-    (*attributes_.mutable_attributes())[key].set_int64_value(value);
+    (*attributes_->mutable_attributes())[key].set_int64_value(value);
     return *this;
   }
 
   AttributesBuilder& AddDouble(const std::string key, double value) {
-    (*attributes_.mutable_attributes())[key].set_double_value(value);
+    (*attributes_->mutable_attributes())[key].set_double_value(value);
     return *this;
   }
 
   AttributesBuilder& AddBool(const std::string key, bool value) {
-    (*attributes_.mutable_attributes())[key].set_bool_value(value);
+    (*attributes_->mutable_attributes())[key].set_bool_value(value);
     return *this;
   }
 
@@ -63,7 +63,7 @@ class AttributesBuilder {
       const std::string key,
       std::chrono::time_point<std::chrono::system_clock> value) {
     auto time_stamp =
-        (*attributes_.mutable_attributes())[key].mutable_timestamp_value();
+        (*attributes_->mutable_attributes())[key].mutable_timestamp_value();
     long long nanos = std::chrono::duration_cast<std::chrono::nanoseconds>(
                           value.time_since_epoch())
                           .count();
@@ -75,7 +75,7 @@ class AttributesBuilder {
   AttributesBuilder& AddDuration(const std::string key,
                                  std::chrono::nanoseconds value) {
     auto duration =
-        (*attributes_.mutable_attributes())[key].mutable_duration_value();
+        (*attributes_->mutable_attributes())[key].mutable_duration_value();
     duration->set_seconds(value.count() / 1000000000);
     duration->set_nanos(value.count() % 1000000000);
     return *this;
@@ -83,7 +83,7 @@ class AttributesBuilder {
 
   AttributesBuilder& AddStringMap(
       const std::string key, std::map<std::string, std::string>&& string_map) {
-    auto entries = (*attributes_.mutable_attributes())[key]
+    auto entries = (*attributes_->mutable_attributes())[key]
                        .mutable_string_map_value()
                        ->mutable_entries();
     entries->clear();
@@ -94,7 +94,7 @@ class AttributesBuilder {
   }
 
  private:
-  ::istio::mixer::v1::Attributes& attributes_;
+  ::istio::mixer::v1::Attributes* attributes_;
 };
 
 }  // namespace mixer_client

@@ -42,7 +42,7 @@ class QuotaCacheTest : public ::testing::Test {
     cache_ = std::unique_ptr<QuotaCache>(new QuotaCache(options));
     ASSERT_TRUE((bool)(cache_));
 
-    AttributesBuilder(request_).AddString("quota.name", kQuotaName);
+    AttributesBuilder(&request_).AddString("quota.name", kQuotaName);
   }
 
   void TestRequest(const Attributes& request, bool pass,
@@ -194,7 +194,7 @@ TEST_F(QuotaCacheTest, TestInvalidQuotaReferenced) {
   (*response.mutable_quotas())[kQuotaName] = quota_result;
 
   Attributes attr(request_);
-  AttributesBuilder builder(attr);
+  AttributesBuilder builder(&attr);
   builder.AddString("source.name", "user1");
   // response has invalid referenced, cache item still in pending.
   TestRequest(attr, true, response);
@@ -221,7 +221,7 @@ TEST_F(QuotaCacheTest, TestMismatchedReferenced) {
   (*response.mutable_quotas())[kQuotaName] = quota_result;
 
   Attributes attr(request_);
-  AttributesBuilder builder(attr);
+  AttributesBuilder builder(&attr);
   builder.AddString("source.name", "user1");
   // Since respones has mismatched Referenced, cache item still in pending.
   // Prefetch always allow the first call.
@@ -248,9 +248,9 @@ TEST_F(QuotaCacheTest, TestOneReferencedWithTwoKeys) {
   (*response.mutable_quotas())[kQuotaName] = quota_result;
 
   Attributes attr1(request_);
-  AttributesBuilder(attr1).AddString("source.name", "user1");
+  AttributesBuilder(&attr1).AddString("source.name", "user1");
   Attributes attr2(request_);
-  AttributesBuilder(attr2).AddString("source.name", "user2");
+  AttributesBuilder(&attr2).AddString("source.name", "user2");
 
   // cache item is updated with 0 token in the pool.
   // it will be saved into cache key with user1.
@@ -289,9 +289,9 @@ TEST_F(QuotaCacheTest, TestTwoReferencedWith) {
   (*response2.mutable_quotas())[kQuotaName] = quota_result2;
 
   Attributes attr1(request_);
-  AttributesBuilder(attr1).AddString("source.name", "name");
+  AttributesBuilder(&attr1).AddString("source.name", "name");
   Attributes attr2(request_);
-  AttributesBuilder(attr2).AddString("source.uid", "uid");
+  AttributesBuilder(&attr2).AddString("source.uid", "uid");
 
   // name request with 0 granted response
   TestRequest(attr1, true, response1);

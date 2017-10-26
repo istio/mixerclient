@@ -139,12 +139,12 @@ TEST(ReferencedTest, NegativeSignature1Test) {
 
   Attributes attributes1;
   // "target.service" should be absence.
-  AttributesBuilder(attributes1).AddString("target.service", "foo");
+  AttributesBuilder(&attributes1).AddString("target.service", "foo");
   EXPECT_FALSE(referenced.Signature(attributes1, "", &signature));
 
   Attributes attributes2;
   // many keys should exist.
-  AttributesBuilder(attributes2).AddString("bytes-key", "foo");
+  AttributesBuilder(&attributes2).AddString("bytes-key", "foo");
   EXPECT_FALSE(referenced.Signature(attributes2, "", &signature));
 }
 
@@ -155,7 +155,7 @@ TEST(ReferencedTest, OKSignature1Test) {
   EXPECT_TRUE(referenced.Fill(pb));
 
   Attributes attributes;
-  AttributesBuilder builder(attributes);
+  AttributesBuilder builder(&attributes);
   builder.AddString("string-key", "this is a string value")
       .AddBytes("bytes-key", "this is a bytes value")
       .AddDouble("double-key", 99.9)

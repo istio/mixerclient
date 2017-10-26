@@ -116,7 +116,7 @@ TEST_F(ReportBatchTest, TestNoDeltaUpdate) {
       }));
 
   Attributes report;
-  AttributesBuilder(report).AddString("key", "value");
+  AttributesBuilder(&report).AddString("key", "value");
   batch_->Report(report);
   EXPECT_EQ(report_call_count, 0);
 

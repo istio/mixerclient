@@ -49,7 +49,7 @@ class MockCheckTransport {
 class MixerClientImplTest : public ::testing::Test {
  public:
   MixerClientImplTest() {
-    AttributesBuilder(request_).AddString("quota.name", kRequestCount);
+    AttributesBuilder(&request_).AddString("quota.name", kRequestCount);
 
     CreateClient(true /* check_cache */, true /* quota_cache */);
   }
