@@ -54,8 +54,9 @@ class AttributesBuilder {
     (*attributes_->mutable_attributes())[key].set_bool_value(value);
   }
 
-  void AddTimestamp(const std::string& key,
-                    std::chrono::time_point<std::chrono::system_clock> value) {
+  void AddTimestamp(
+      const std::string& key,
+      const std::chrono::time_point<std::chrono::system_clock>& value) {
     auto time_stamp =
         (*attributes_->mutable_attributes())[key].mutable_timestamp_value();
     long long nanos = std::chrono::duration_cast<std::chrono::nanoseconds>(
@@ -65,7 +66,8 @@ class AttributesBuilder {
     time_stamp->set_nanos(nanos % 1000000000);
   }
 
-  void AddDuration(const std::string& key, std::chrono::nanoseconds value) {
+  void AddDuration(const std::string& key,
+                   const std::chrono::nanoseconds& value) {
     auto duration =
         (*attributes_->mutable_attributes())[key].mutable_duration_value();
     duration->set_seconds(value.count() / 1000000000);
