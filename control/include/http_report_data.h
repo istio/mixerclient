@@ -22,7 +22,7 @@
 namespace istio {
 namespace mixer_control {
 
-// The interface to extract data for Mixer report.
+// The interface to extract HTTP data for Mixer report.
 class HttpReportData {
  public:
   virtual ~HttpReportData() {}

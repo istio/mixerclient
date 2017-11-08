@@ -21,7 +21,7 @@
 namespace istio {
 namespace mixer_control {
 
-// The interface to extract data for Mixer check call.
+// The interface to extract TCP data for Mixer check call.
 class TcpCheckData {
  public:
   virtual ~TcpCheckData() {}

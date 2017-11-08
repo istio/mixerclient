@@ -22,14 +22,14 @@
 namespace istio {
 namespace mixer_control {
 
-// The interface to extract data for Mixer check.
+// The interface to extract HTTP data for Mixer check.
 class HttpCheckData {
  public:
   virtual ~HttpCheckData() {}
 
   // Find "x-istio-attributes" HTTP header.
-  // If found, base64 decode its value and
-  // remove the HTTP header from the request.
+  // If found, base64 decode its value,  pass it out
+  // and remove the HTTP header from the request.
   virtual bool ExtractIstioAttributes(std::string* data) = 0;
 
   // Base64 encode data, and add it as "x-istio-attributes" HTTP header.
@@ -41,11 +41,12 @@ class HttpCheckData {
   // If SSL is used, get origin user name.
   virtual bool GetSourceUser(std::string* user) const = 0;
 
-  // Get reqeust HTTP headers
+  // Get request HTTP headers
   virtual std::map<std::string, std::string> GetRequestHeaders() const = 0;
 
   // These headers are extracted into top level attributes.
-  // They can be retrieved at O(1) speed by Envoy.
+  // They can be retrieved at O(1) speed by Platform (Envoy).
+  // It is faster to use the map from GetRequestHeader() call.
   enum HeaderType {
     HEADER_PATH = 0,
     HEADER_HOST,

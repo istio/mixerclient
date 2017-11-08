@@ -27,8 +27,8 @@ cc_library(
         "src/http_attributes_builder.h",
         "src/http_request_handler_impl.cc",
         "src/http_request_handler_impl.h",
-	"src/request_context.h",
-	"src/service_context.h",
+        "src/request_context.h",
+        "src/service_context.h",
         "src/tcp_attributes_builder.cc",
         "src/tcp_attributes_builder.h",
         "src/tcp_request_handler_impl.cc",
@@ -58,7 +58,7 @@ cc_test(
     srcs = [
         "src/mock_http_check_data.h",
         "src/mock_http_report_data.h",
-	"src/http_attributes_builder_test.cc",
+        "src/http_attributes_builder_test.cc",
     ],
     linkstatic = 1,
     deps = [
@@ -73,7 +73,7 @@ cc_test(
     srcs = [
         "src/mock_tcp_check_data.h",
         "src/mock_tcp_report_data.h",
-	"src/tcp_attributes_builder_test.cc",
+        "src/tcp_attributes_builder_test.cc",
     ],
     linkstatic = 1,
     deps = [
@@ -89,7 +89,7 @@ cc_test(
         "src/mock_mixer_client.h",
         "src/mock_http_check_data.h",
         "src/mock_http_report_data.h",
-	"src/http_request_handler_impl_test.cc",
+        "src/http_request_handler_impl_test.cc",
     ],
     linkstatic = 1,
     deps = [
@@ -105,7 +105,7 @@ cc_test(
         "src/mock_mixer_client.h",
         "src/mock_tcp_check_data.h",
         "src/mock_tcp_report_data.h",
-	"src/tcp_request_handler_impl_test.cc",
+        "src/tcp_request_handler_impl_test.cc",
     ],
     linkstatic = 1,
     deps = [

@@ -40,6 +40,7 @@ class Controller {
     // if not NULL, legacy per-route config for 0.2 and before.
     const ::istio::mixer::v1::config::client::MixerControlConfig* legacy_config;
   };
+
   // Creates a HTTP request handler.
   // The handler supports making Check and Report calls to Mixer.
   // "per_route_config" is for supporting older version of Pilot which

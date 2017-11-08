@@ -76,7 +76,9 @@ class AttributesBuilder {
 
   void AddStringMap(const std::string& key,
                     const std::map<std::string, std::string>& string_map) {
-    if (string_map.size() == 0) return;
+    if (string_map.size() == 0) {
+      return;
+    }
     auto entries = (*attributes_->mutable_attributes())[key]
                        .mutable_string_map_value()
                        ->mutable_entries();
