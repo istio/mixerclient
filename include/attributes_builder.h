@@ -76,6 +76,7 @@ class AttributesBuilder {
 
   void AddStringMap(const std::string& key,
                     const std::map<std::string, std::string>& string_map) {
+    if (string_map.size() == 0) return;
     auto entries = (*attributes_->mutable_attributes())[key]
                        .mutable_string_map_value()
                        ->mutable_entries();
@@ -84,6 +85,10 @@ class AttributesBuilder {
       (*entries)[map_it.first] = map_it.second;
     }
   }
+
+  // If key suffixed with ".ip", try to convert its value to ipv4 or ipv6.
+  // If success, add it as bytes, otherwise add it as string.
+  void AddIpOrString(const std::string& key, const std::string& str);
 
  private:
   ::istio::mixer::v1::Attributes* attributes_;
