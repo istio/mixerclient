@@ -466,7 +466,7 @@ bool PathMatcherBuilder<Method>::Register(std::string http_method,
                                           std::string http_template,
                                           std::string body_field_path,
                                           Method method) {
-  std::unique_ptr<HttpTemplate> ht(HttpTemplate::Parse(http_template));
+  std::unique_ptr<HttpTemplate> ht = HttpTemplate::Parse(http_template);
   if (nullptr == ht) {
     return false;
   }

@@ -60,7 +60,7 @@ std::ostream &operator<<(std::ostream &os, const Variables &vars) {
 }
 
 TEST(HttpTemplate, ParseTest1) {
-  HttpTemplate *ht = HttpTemplate::Parse("/shelves/{shelf}/books/{book}");
+  auto ht = HttpTemplate::Parse("/shelves/{shelf}/books/{book}");
   ASSERT_NE(nullptr, ht);
   ASSERT_EQ(Segments({"shelves", "*", "books", "*"}), ht->segments());
   ASSERT_EQ(Variables({
@@ -71,7 +71,7 @@ TEST(HttpTemplate, ParseTest1) {
 }
 
 TEST(HttpTemplate, ParseTest2) {
-  HttpTemplate *ht = HttpTemplate::Parse("/shelves/**");
+  auto ht = HttpTemplate::Parse("/shelves/**");
   ASSERT_NE(nullptr, ht);
   ASSERT_EQ(Segments({"shelves", "**"}), ht->segments());
   ASSERT_EQ("", ht->verb());
@@ -79,7 +79,7 @@ TEST(HttpTemplate, ParseTest2) {
 }
 
 TEST(HttpTemplate, ParseTest3) {
-  HttpTemplate *ht = HttpTemplate::Parse("/**");
+  auto ht = HttpTemplate::Parse("/**");
   ASSERT_NE(nullptr, ht);
   ASSERT_EQ(Segments({"**"}), ht->segments());
   ASSERT_EQ("", ht->verb());
@@ -87,7 +87,7 @@ TEST(HttpTemplate, ParseTest3) {
 }
 
 TEST(HttpTemplate, ParseTest4a) {
-  HttpTemplate *ht = HttpTemplate::Parse("/a:foo");
+  auto ht = HttpTemplate::Parse("/a:foo");
   ASSERT_NE(nullptr, ht);
   ASSERT_EQ(Segments({"a"}), ht->segments());
   ASSERT_EQ("foo", ht->verb());
@@ -95,7 +95,7 @@ TEST(HttpTemplate, ParseTest4a) {
 }
 
 TEST(HttpTemplate, ParseTest4b) {
-  HttpTemplate *ht = HttpTemplate::Parse("/a/b/c:foo");
+  auto ht = HttpTemplate::Parse("/a/b/c:foo");
   ASSERT_NE(nullptr, ht);
   ASSERT_EQ(Segments({"a", "b", "c"}), ht->segments());
   ASSERT_EQ("foo", ht->verb());
@@ -103,7 +103,7 @@ TEST(HttpTemplate, ParseTest4b) {
 }
 
 TEST(HttpTemplate, ParseTest5) {
-  HttpTemplate *ht = HttpTemplate::Parse("/*/**");
+  auto ht = HttpTemplate::Parse("/*/**");
   ASSERT_NE(nullptr, ht);
   ASSERT_EQ(Segments({"*", "**"}), ht->segments());
   ASSERT_EQ("", ht->verb());
@@ -111,7 +111,7 @@ TEST(HttpTemplate, ParseTest5) {
 }
 
 TEST(HttpTemplate, ParseTest6) {
-  HttpTemplate *ht = HttpTemplate::Parse("/*/a/**");
+  auto ht = HttpTemplate::Parse("/*/a/**");
   ASSERT_NE(nullptr, ht);
   ASSERT_EQ(Segments({"*", "a", "**"}), ht->segments());
   ASSERT_EQ("", ht->verb());
@@ -119,7 +119,7 @@ TEST(HttpTemplate, ParseTest6) {
 }
 
 TEST(HttpTemplate, ParseTest7) {
-  HttpTemplate *ht = HttpTemplate::Parse("/a/{a.b.c}");
+  auto ht = HttpTemplate::Parse("/a/{a.b.c}");
   ASSERT_NE(nullptr, ht);
   ASSERT_EQ(Segments({"a", "*"}), ht->segments());
   ASSERT_EQ("", ht->verb());
@@ -130,7 +130,7 @@ TEST(HttpTemplate, ParseTest7) {
 }
 
 TEST(HttpTemplate, ParseTest8) {
-  HttpTemplate *ht = HttpTemplate::Parse("/a/{a.b.c=*}");
+  auto ht = HttpTemplate::Parse("/a/{a.b.c=*}");
   ASSERT_NE(nullptr, ht);
   ASSERT_EQ(Segments({"a", "*"}), ht->segments());
   ASSERT_EQ("", ht->verb());
@@ -141,7 +141,7 @@ TEST(HttpTemplate, ParseTest8) {
 }
 
 TEST(HttpTemplate, ParseTest9) {
-  HttpTemplate *ht = HttpTemplate::Parse("/a/{b=*}");
+  auto ht = HttpTemplate::Parse("/a/{b=*}");
   ASSERT_NE(nullptr, ht);
   ASSERT_EQ(Segments({"a", "*"}), ht->segments());
   ASSERT_EQ("", ht->verb());
@@ -152,7 +152,7 @@ TEST(HttpTemplate, ParseTest9) {
 }
 
 TEST(HttpTemplate, ParseTest10) {
-  HttpTemplate *ht = HttpTemplate::Parse("/a/{b=**}");
+  auto ht = HttpTemplate::Parse("/a/{b=**}");
   ASSERT_NE(nullptr, ht);
   ASSERT_EQ(Segments({"a", "**"}), ht->segments());
   ASSERT_EQ("", ht->verb());
@@ -163,7 +163,7 @@ TEST(HttpTemplate, ParseTest10) {
 }
 
 TEST(HttpTemplate, ParseTest11) {
-  HttpTemplate *ht = HttpTemplate::Parse("/a/{b=c/*}");
+  auto ht = HttpTemplate::Parse("/a/{b=c/*}");
   ASSERT_NE(nullptr, ht);
   ASSERT_EQ(Segments({"a", "c", "*"}), ht->segments());
   ASSERT_EQ("", ht->verb());
@@ -174,7 +174,7 @@ TEST(HttpTemplate, ParseTest11) {
 }
 
 TEST(HttpTemplate, ParseTest12) {
-  HttpTemplate *ht = HttpTemplate::Parse("/a/{b=c/*/d}");
+  auto ht = HttpTemplate::Parse("/a/{b=c/*/d}");
   ASSERT_NE(nullptr, ht);
   ASSERT_EQ(Segments({"a", "c", "*", "d"}), ht->segments());
   ASSERT_EQ("", ht->verb());
@@ -185,7 +185,7 @@ TEST(HttpTemplate, ParseTest12) {
 }
 
 TEST(HttpTemplate, ParseTest13) {
-  HttpTemplate *ht = HttpTemplate::Parse("/a/{b=c/**}");
+  auto ht = HttpTemplate::Parse("/a/{b=c/**}");
   ASSERT_NE(nullptr, ht);
   ASSERT_EQ(Segments({"a", "c", "**"}), ht->segments());
   ASSERT_EQ("", ht->verb());
@@ -196,7 +196,7 @@ TEST(HttpTemplate, ParseTest13) {
 }
 
 TEST(HttpTemplate, ParseTest14) {
-  HttpTemplate *ht = HttpTemplate::Parse("/a/{b=c/**}/d/e");
+  auto ht = HttpTemplate::Parse("/a/{b=c/**}/d/e");
   ASSERT_NE(nullptr, ht);
   ASSERT_EQ(Segments({"a", "c", "**", "d", "e"}), ht->segments());
   ASSERT_EQ("", ht->verb());
@@ -207,7 +207,7 @@ TEST(HttpTemplate, ParseTest14) {
 }
 
 TEST(HttpTemplate, ParseTest15) {
-  HttpTemplate *ht = HttpTemplate::Parse("/a/{b=c/**/d}/e");
+  auto ht = HttpTemplate::Parse("/a/{b=c/**/d}/e");
   ASSERT_NE(nullptr, ht);
   ASSERT_EQ(Segments({"a", "c", "**", "d", "e"}), ht->segments());
   ASSERT_EQ("", ht->verb());
@@ -218,7 +218,7 @@ TEST(HttpTemplate, ParseTest15) {
 }
 
 TEST(HttpTemplate, ParseTest16) {
-  HttpTemplate *ht = HttpTemplate::Parse("/a/{b=c/**/d}/e:verb");
+  auto ht = HttpTemplate::Parse("/a/{b=c/**/d}/e:verb");
   ASSERT_NE(nullptr, ht);
   ASSERT_EQ(Segments({"a", "c", "**", "d", "e"}), ht->segments());
   ASSERT_EQ("verb", ht->verb());
@@ -229,9 +229,7 @@ TEST(HttpTemplate, ParseTest16) {
 }
 
 TEST(HttpTemplate, CustomVerbTests) {
-  HttpTemplate *ht;
-
-  ht = HttpTemplate::Parse("/*:verb");
+  auto ht = HttpTemplate::Parse("/*:verb");
   ASSERT_EQ(Segments({"*"}), ht->segments());
   ASSERT_EQ(Variables(), ht->Variables());
 
@@ -263,7 +261,7 @@ TEST(HttpTemplate, CustomVerbTests) {
 }
 
 TEST(HttpTemplate, MoreVariableTests) {
-  HttpTemplate *ht = HttpTemplate::Parse("/{x}");
+  auto ht = HttpTemplate::Parse("/{x}");
 
   ASSERT_NE(nullptr, ht);
   ASSERT_EQ(Segments({"*"}), ht->segments());
@@ -355,7 +353,7 @@ TEST(HttpTemplate, MoreVariableTests) {
 }
 
 TEST(HttpTemplate, VariableAndCustomVerbTests) {
-  HttpTemplate *ht = HttpTemplate::Parse("/{x}:verb");
+  auto ht = HttpTemplate::Parse("/{x}:verb");
 
   ASSERT_NE(nullptr, ht);
   ASSERT_EQ(Segments({"*"}), ht->segments());
@@ -480,21 +478,21 @@ TEST(HttpTemplate, ErrorTests) {
 }
 
 TEST(HttpTemplate, ParseVerbTest2) {
-  HttpTemplate *ht = HttpTemplate::Parse("/a/*:verb");
+  auto ht = HttpTemplate::Parse("/a/*:verb");
   ASSERT_NE(nullptr, ht);
   ASSERT_EQ(ht->segments(), Segments({"a", "*"}));
   ASSERT_EQ("verb", ht->verb());
 }
 
 TEST(HttpTemplate, ParseVerbTest3) {
-  HttpTemplate *ht = HttpTemplate::Parse("/a/**:verb");
+  auto ht = HttpTemplate::Parse("/a/**:verb");
   ASSERT_NE(nullptr, ht);
   ASSERT_EQ(ht->segments(), Segments({"a", "**"}));
   ASSERT_EQ("verb", ht->verb());
 }
 
 TEST(HttpTemplate, ParseVerbTest4) {
-  HttpTemplate *ht = HttpTemplate::Parse("/a/{b=*}/**:verb");
+  auto ht = HttpTemplate::Parse("/a/{b=*}/**:verb");
   ASSERT_NE(nullptr, ht);
   ASSERT_EQ(ht->segments(), Segments({"a", "*", "**"}));
   ASSERT_EQ("verb", ht->verb());
