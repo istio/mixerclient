@@ -16,7 +16,6 @@
 #include "client_context.h"
 
 using ::google::protobuf::util::Status;
-using ::google::protobuf::util::error::Code;
 using ::istio::mixer::v1::Attributes;
 using ::istio::mixer::v1::config::client::MixerFilterConfig;
 using ::istio::mixer_client::CancelFunc;
@@ -77,13 +76,6 @@ ClientContext::ClientContext(const Controller::Options& data)
 
 CancelFunc ClientContext::SendCheck(TransportCheckFunc transport,
                                     DoneFunc on_done, RequestContext* request) {
-  if (!mixer_client_) {
-    request->check_status =
-        Status(Code::INVALID_ARGUMENT, "Missing mixer_server cluster");
-    on_done(request->check_status);
-    return nullptr;
-  }
-
   // Intercept the callback to save check status in request_context
   auto local_on_done = [request, on_done](const Status& status) {
     // save the check status code
@@ -98,9 +90,6 @@ CancelFunc ClientContext::SendCheck(TransportCheckFunc transport,
 }
 
 void ClientContext::SendReport(const RequestContext& request) {
-  if (!mixer_client_) {
-    return;
-  }
   // TODO: add debug message
   // GOOGLE_LOG(INFO) << "Report attributes: " <<
   // request.attributes.DebugString();

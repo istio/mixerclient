@@ -39,15 +39,15 @@ void HttpAttributesBuilder::ExtractRequestHeaderAttributes(
     const char* default_value;
   };
   static TopLevelAttr attrs[] = {
-      {HttpCheckData::HEADER_PATH, AttributeName::kRequestPath, true, ""},
       {HttpCheckData::HEADER_HOST, AttributeName::kRequestHost, true, ""},
+      {HttpCheckData::HEADER_METHOD, AttributeName::kRequestMethod, false, ""},
+      {HttpCheckData::HEADER_PATH, AttributeName::kRequestPath, true, ""},
+      {HttpCheckData::HEADER_REFERER, AttributeName::kRequestReferer, false,
+       ""},
       {HttpCheckData::HEADER_SCHEME, AttributeName::kRequestScheme, true,
        "http"},
       {HttpCheckData::HEADER_USER_AGENT, AttributeName::kRequestUserAgent,
        false, ""},
-      {HttpCheckData::HEADER_METHOD, AttributeName::kRequestMethod, false, ""},
-      {HttpCheckData::HEADER_REFERER, AttributeName::kRequestReferer, false,
-       ""},
   };
 
   for (const auto& it : attrs) {
