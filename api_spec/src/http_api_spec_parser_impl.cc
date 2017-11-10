@@ -14,6 +14,7 @@
  */
 
 #include "http_api_spec_parser_impl.h"
+#include "google/protobuf/stubs/logging.h"
 
 using ::istio::mixer::v1::Attributes;
 using ::istio::mixer::v1::config::client::HTTPAPISpec;
@@ -29,7 +30,8 @@ HttpApiSpecParserImpl::HttpApiSpecParserImpl(const HTTPAPISpec& api_spec)
     if (pattern.pattern_case() == HTTPAPISpecPattern::kUriTemplate) {
       if (!pmb.Register(pattern.http_method(), pattern.uri_template(),
                         std::string(), &pattern.attributes())) {
-        // TODO: log error message.
+        GOOGLE_LOG(WARNING) << "Invalid uri_template: "
+                            << pattern.uri_template();
       }
     } else {
       regex_list_.emplace_back(pattern.regex(), pattern.http_method(),
