@@ -16,13 +16,13 @@
 #ifndef MIXERCONTROL_HTTP_REQUEST_HANDLER_H
 #define MIXERCONTROL_HTTP_REQUEST_HANDLER_H
 
-#include "http_check_data.h"
-#include "http_report_data.h"
+#include "check_data.h"
+#include "report_data.h"
 #include "include/client.h"
 
 namespace istio {
 namespace mixer_control {
-
+name
 // The interface to handle a HTTP request.
 class HttpRequestHandler {
  public:
