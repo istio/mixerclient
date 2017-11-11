@@ -17,26 +17,27 @@
 #define MIXERCONTROL_HTTP_REQUEST_HANDLER_IMPL_H
 
 #include "client_context.h"
-#include "control/include/http_request_handler.h"
-#include "request_context.h"
+#include "control/include/http/request_handler.h"
+#include "control/src/request_context.h"
 #include "service_context.h"
 
 namespace istio {
 namespace mixer_control {
+namespace http {
 
 // The class to implement HTTPRequestHandler interface.
-class HttpRequestHandlerImpl : public HttpRequestHandler {
+class RequestHandlerImpl : public RequestHandler {
  public:
-  HttpRequestHandlerImpl(std::shared_ptr<ServiceContext> service_context);
+  RequestHandlerImpl(std::shared_ptr<ServiceContext> service_context);
 
   // Makes a Check call.
   ::istio::mixer_client::CancelFunc Check(
-      HttpCheckData* check_data,
+      CheckData* check_data,
       ::istio::mixer_client::TransportCheckFunc transport,
       ::istio::mixer_client::DoneFunc on_done) override;
 
   // Make a Report call.
-  void Report(HttpReportData* report_data) override;
+  void Report(ReportData* report_data) override;
 
  private:
   // The request context object.
@@ -46,6 +47,7 @@ class HttpRequestHandlerImpl : public HttpRequestHandler {
   std::shared_ptr<ServiceContext> service_context_;
 };
 
+}  // namespace http
 }  // namespace mixer_control
 }  // namespace istio
 

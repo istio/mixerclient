@@ -15,40 +15,68 @@
 licenses(["notice"])
 
 cc_library(
-    name = "mixer_control_lib",
+    name = "common_lib",
     srcs = [
         "src/attribute_names.cc",
+        "src/client_context_base.cc",
+    ],
+    hdrs = [
         "src/attribute_names.h",
-        "src/client_context.cc",
-        "src/client_context.h",
-        "src/controller_impl.cc",
-        "src/controller_impl.h",
-        "src/http_attributes_builder.cc",
-        "src/http_attributes_builder.h",
-        "src/http_request_handler_impl.cc",
-        "src/http_request_handler_impl.h",
+        "src/client_context_base.h",
         "src/request_context.h",
-        "src/service_context.h",
-        "src/tcp_attributes_builder.cc",
-        "src/tcp_attributes_builder.h",
-        "src/tcp_request_handler_impl.cc",
-        "src/tcp_request_handler_impl.h",
+    ],
+    deps = [
+        "//:mixer_client_lib",
+        "@mixerapi_git//:mixer_client_config_cc_proto",
+    ],
+)
+
+cc_library(
+    name = "http_control_lib",
+    srcs = [
+        "src/http/client_context.h",
+        "src/http/controller_impl.cc",
+        "src/http/controller_impl.h",
+        "src/http/attributes_builder.cc",
+        "src/http/attributes_builder.h",
+        "src/http/request_handler_impl.cc",
+        "src/http/request_handler_impl.h",
+        "src/http/service_context.h",
         "src/utils/status.cc",
     ],
     hdrs = [
-        "include/controller.h",
-        "include/http_check_data.h",
-        "include/http_report_data.h",
-        "include/http_request_handler.h",
-        "include/tcp_check_data.h",
-        "include/tcp_report_data.h",
-        "include/tcp_request_handler.h",
+        "include/http/controller.h",
+        "include/http/check_data.h",
+        "include/http/report_data.h",
+        "include/http/request_handler.h",
         "include/utils/status.h",
     ],
     visibility = ["//visibility:public"],
     deps = [
-        "//:mixer_client_lib",
-        "@mixerapi_git//:mixer_client_config_cc_proto",
+        ":common_lib",
+    ],
+)
+
+cc_library(
+    name = "tcp_control_lib",
+    srcs = [
+        "src/tcp/client_context.h",
+        "src/tcp/controller_impl.cc",
+        "src/tcp/controller_impl.h",
+        "src/tcp/attributes_builder.cc",
+        "src/tcp/attributes_builder.h",
+        "src/tcp/request_handler_impl.cc",
+        "src/tcp/request_handler_impl.h",
+    ],
+    hdrs = [
+        "include/tcp/controller.h",
+        "include/tcp/check_data.h",
+        "include/tcp/report_data.h",
+        "include/tcp/request_handler.h",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":common_lib",
     ],
 )
 
@@ -56,28 +84,13 @@ cc_test(
     name = "http_attributes_builder_test",
     size = "small",
     srcs = [
-        "src/mock_http_check_data.h",
-        "src/mock_http_report_data.h",
-        "src/http_attributes_builder_test.cc",
+        "src/http/mock_check_data.h",
+        "src/http/mock_report_data.h",
+        "src/http/attributes_builder_test.cc",
     ],
     linkstatic = 1,
     deps = [
-        ":mixer_control_lib",
-        "//external:googletest_main",
-    ],
-)
-
-cc_test(
-    name = "tcp_attributes_builder_test",
-    size = "small",
-    srcs = [
-        "src/mock_tcp_check_data.h",
-        "src/mock_tcp_report_data.h",
-        "src/tcp_attributes_builder_test.cc",
-    ],
-    linkstatic = 1,
-    deps = [
-        ":mixer_control_lib",
+        ":http_control_lib",
         "//external:googletest_main",
     ],
 )
@@ -87,13 +100,28 @@ cc_test(
     size = "small",
     srcs = [
         "src/mock_mixer_client.h",
-        "src/mock_http_check_data.h",
-        "src/mock_http_report_data.h",
-        "src/http_request_handler_impl_test.cc",
+        "src/http/mock_check_data.h",
+        "src/http/mock_report_data.h",
+        "src/http/request_handler_impl_test.cc",
     ],
     linkstatic = 1,
     deps = [
-        ":mixer_control_lib",
+        ":http_control_lib",
+        "//external:googletest_main",
+    ],
+)
+
+cc_test(
+    name = "tcp_attributes_builder_test",
+    size = "small",
+    srcs = [
+        "src/tcp/mock_check_data.h",
+        "src/tcp/mock_report_data.h",
+        "src/tcp/attributes_builder_test.cc",
+    ],
+    linkstatic = 1,
+    deps = [
+        ":tcp_control_lib",
         "//external:googletest_main",
     ],
 )
@@ -103,13 +131,13 @@ cc_test(
     size = "small",
     srcs = [
         "src/mock_mixer_client.h",
-        "src/mock_tcp_check_data.h",
-        "src/mock_tcp_report_data.h",
-        "src/tcp_request_handler_impl_test.cc",
+        "src/tcp/mock_check_data.h",
+        "src/tcp/mock_report_data.h",
+        "src/tcp/request_handler_impl_test.cc",
     ],
     linkstatic = 1,
     deps = [
-        ":mixer_control_lib",
+        ":tcp_control_lib",
         "//external:googletest_main",
     ],
 )

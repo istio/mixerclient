@@ -15,73 +15,75 @@
 
 #include "client_context.h"
 #include "controller_impl.h"
+#include "control/src/mock_mixer_client.h"
 #include "gtest/gtest.h"
-#include "mock_mixer_client.h"
-#include "mock_tcp_check_data.h"
-#include "mock_tcp_report_data.h"
+#include "mock_check_data.h"
+#include "mock_report_data.h"
 
 using ::google::protobuf::util::Status;
-using ::istio::mixer::v1::config::client::MixerFilterConfig;
+using ::istio::mixer::v1::config::client::TcpClientConfig;
 using ::istio::mixer_client::MixerClient;
 
 using ::testing::_;
 
 namespace istio {
 namespace mixer_control {
+namespace tcp {
 
-class TcpRequestHandlerImplTest : public ::testing::Test {
+class RequestHandlerImplTest : public ::testing::Test {
  public:
   void SetUp() {
     mock_client_ = new ::testing::NiceMock<MockMixerClient>;
     client_context_ = std::make_shared<ClientContext>(
-        std::unique_ptr<MixerClient>(mock_client_), filter_config_);
+        std::unique_ptr<MixerClient>(mock_client_), client_config_);
     controller_ =
         std::unique_ptr<Controller>(new ControllerImpl(client_context_));
   }
 
   std::shared_ptr<ClientContext> client_context_;
-  MixerFilterConfig filter_config_;
+  TcpClientConfig client_config_;
   ::testing::NiceMock<MockMixerClient>* mock_client_;
   std::unique_ptr<Controller> controller_;
 };
 
-TEST_F(TcpRequestHandlerImplTest, TestTcpHandlerDisabledCheck) {
-  ::testing::NiceMock<MockTcpCheckData> mock_data;
+TEST_F(RequestHandlerImplTest, TestHandlerDisabledCheck) {
+  ::testing::NiceMock<MockCheckData> mock_data;
   EXPECT_CALL(mock_data, GetSourceIpPort(_, _)).Times(1);
   EXPECT_CALL(mock_data, GetSourceUser(_)).Times(1);
 
   // Check should not be called.
   EXPECT_CALL(*mock_client_, Check(_, _, _)).Times(0);
 
-  filter_config_.set_disable_tcp_check_calls(true);
-  auto handler = controller_->CreateTcpRequestHandler();
+  client_config_.set_disable_check_calls(true);
+  auto handler = controller_->CreateRequestHandler();
   handler->Check(&mock_data,
                  [](const Status& status) { EXPECT_TRUE(status.ok()); });
 }
 
-TEST_F(TcpRequestHandlerImplTest, TestTcpHandlerCheck) {
-  ::testing::NiceMock<MockTcpCheckData> mock_data;
+TEST_F(RequestHandlerImplTest, TestHandlerCheck) {
+  ::testing::NiceMock<MockCheckData> mock_data;
   EXPECT_CALL(mock_data, GetSourceIpPort(_, _)).Times(1);
   EXPECT_CALL(mock_data, GetSourceUser(_)).Times(1);
 
   // Check should be called.
   EXPECT_CALL(*mock_client_, Check(_, _, _)).Times(1);
 
-  auto handler = controller_->CreateTcpRequestHandler();
+  auto handler = controller_->CreateRequestHandler();
   handler->Check(&mock_data, nullptr);
 }
 
-TEST_F(TcpRequestHandlerImplTest, TestTcpHandlerReport) {
-  ::testing::NiceMock<MockTcpReportData> mock_data;
+TEST_F(RequestHandlerImplTest, TestHandlerReport) {
+  ::testing::NiceMock<MockReportData> mock_data;
   EXPECT_CALL(mock_data, GetDestinationIpPort(_, _)).Times(1);
   EXPECT_CALL(mock_data, GetReportInfo(_)).Times(1);
 
   // Report should be called.
   EXPECT_CALL(*mock_client_, Report(_)).Times(1);
 
-  auto handler = controller_->CreateTcpRequestHandler();
+  auto handler = controller_->CreateRequestHandler();
   handler->Report(&mock_data);
 }
 
+}  // namespace tcp
 }  // namespace mixer_control
 }  // namespace istio

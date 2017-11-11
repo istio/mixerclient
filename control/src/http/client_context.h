@@ -13,48 +13,43 @@
  * limitations under the License.
  */
 
-#ifndef MIXERCONTROL_CLIENT_CONTEXT_H
-#define MIXERCONTROL_CLIENT_CONTEXT_H
+#ifndef MIXERCONTROL_HTTP_CLIENT_CONTEXT_H
+#define MIXERCONTROL_HTTP_CLIENT_CONTEXT_H
 
-#include "control/include/controller.h"
-#include "request_context.h"
+#include "control/include/http/controller.h"
+#include "control/src/client_context_base.h"
 
 namespace istio {
 namespace mixer_control {
+namespace http {
 
 // The global context object to hold:
 // * the mixer client config
 // * the mixer client object to call Check/Report with cache.
-class ClientContext {
+class ClientContext : public ClientContextBase {
  public:
-  ClientContext(const Controller::Options& data);
+  ClientContext(const Controller::Options& data)
+      : ClientContextBase(data.config.transport(), data.env),
+        config_(data.config) {}
+
   // A constructor for unit-test to pass in a mock mixer_client
   ClientContext(
       std::unique_ptr<::istio::mixer_client::MixerClient> mixer_client,
-      const ::istio::mixer::v1::config::client::MixerFilterConfig& config)
-      : mixer_client_(std::move(mixer_client)), config_(config) {}
-
-  // Use mixer client object to make a Check call.
-  ::istio::mixer_client::CancelFunc SendCheck(
-      ::istio::mixer_client::TransportCheckFunc transport,
-      ::istio::mixer_client::DoneFunc on_done, RequestContext* request);
-
-  // Use mixer client object to make a Report call.
-  void SendReport(const RequestContext& request);
+      const ::istio::mixer::v1::config::client::HttpClientConfig& config)
+      : ClientContextBase(std::move(mixer_client)), config_(config) {}
 
   // Retrieve mixer client config.
-  const ::istio::mixer::v1::config::client::MixerFilterConfig& config() const {
+  const ::istio::mixer::v1::config::client::HttpClientConfig& config() const {
     return config_;
   }
 
  private:
-  // The mixer client object with check cache and report batch features.
-  std::unique_ptr<::istio::mixer_client::MixerClient> mixer_client_;
-  // The mixer client config.
-  const ::istio::mixer::v1::config::client::MixerFilterConfig& config_;
+  // The http client config.
+  const ::istio::mixer::v1::config::client::HttpClientConfig& config_;
 };
 
+}  // namespace http
 }  // namespace mixer_control
 }  // namespace istio
 
-#endif  // MIXERCONTROL_CLIENT_CONTEXT_H
+#endif  // MIXERCONTROL_HTTP_CLIENT_CONTEXT_H

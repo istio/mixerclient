@@ -13,17 +13,18 @@
  * limitations under the License.
  */
 
-#ifndef MIXERCONTROL_MOCK_HTTP_CHECK_DATA_H
-#define MIXERCONTROL_MOCK_HTTP_CHECK_DATA_H
+#ifndef MIXERCONTROL_HTTP_MOCK_CHECK_DATA_H
+#define MIXERCONTROL_HTTP_MOCK_CHECK_DATA_H
 
-#include "control/include/http_check_data.h"
+#include "control/include/http/check_data.h"
 #include "gmock/gmock.h"
 
 namespace istio {
 namespace mixer_control {
+namespace http {
 
-// The mock object for HttpCheckData interface.
-class MockHttpCheckData : public HttpCheckData {
+// The mock object for CheckData interface.
+class MockCheckData : public CheckData {
  public:
   MOCK_METHOD1(ExtractIstioAttributes, bool(std::string* data));
   MOCK_METHOD1(AddIstioAttributes, void(const std::string& data));
@@ -35,7 +36,8 @@ class MockHttpCheckData : public HttpCheckData {
                      bool(HeaderType header_type, std::string* value));
 };
 
+}  // namespace http
 }  // namespace mixer_control
 }  // namespace istio
 
-#endif  // MIXERCONTROL_MOCK_HTTP_CHECK_DATA_H
+#endif  // MIXERCONTROL_HTTP_MOCK_CHECK_DATA_H

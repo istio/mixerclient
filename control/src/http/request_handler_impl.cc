@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#include "http_request_handler_impl.h"
-#include "http_attributes_builder.h"
+#include "request_handler_impl.h"
+#include "attributes_builder.h"
 
 using ::google::protobuf::util::Status;
 using ::istio::mixer_client::CancelFunc;
@@ -23,25 +23,26 @@ using ::istio::mixer_client::DoneFunc;
 
 namespace istio {
 namespace mixer_control {
+namespace http {
 
-HttpRequestHandlerImpl::HttpRequestHandlerImpl(
+RequestHandlerImpl::RequestHandlerImpl(
     std::shared_ptr<ServiceContext> service_context)
     : service_context_(service_context) {}
 
-CancelFunc HttpRequestHandlerImpl::Check(HttpCheckData* check_data,
-                                         TransportCheckFunc transport,
-                                         DoneFunc on_done) {
+CancelFunc RequestHandlerImpl::Check(CheckData* check_data,
+                                     TransportCheckFunc transport,
+                                     DoneFunc on_done) {
   if (service_context_->enable_mixer_check() ||
       service_context_->enable_mixer_report()) {
     service_context_->AddStaticAttributes(&request_context_);
 
-    HttpAttributesBuilder builder(&request_context_);
+    AttributesBuilder builder(&request_context_);
     builder.ExtractForwardedAttributes(check_data);
     builder.ExtractCheckAttributes(check_data);
   }
 
   if (service_context_->client_context()->config().has_forward_attributes()) {
-    HttpAttributesBuilder::ForwardAttributes(
+    AttributesBuilder::ForwardAttributes(
         service_context_->client_context()->config().forward_attributes(),
         check_data);
   }
@@ -56,15 +57,16 @@ CancelFunc HttpRequestHandlerImpl::Check(HttpCheckData* check_data,
 }
 
 // Make remote report call.
-void HttpRequestHandlerImpl::Report(HttpReportData* report_data) {
+void RequestHandlerImpl::Report(ReportData* report_data) {
   if (!service_context_->enable_mixer_report()) {
     return;
   }
-  HttpAttributesBuilder builder(&request_context_);
+  AttributesBuilder builder(&request_context_);
   builder.ExtractReportAttributes(report_data);
 
   service_context_->client_context()->SendReport(request_context_);
 }
 
+}  // namespace http
 }  // namespace mixer_control
 }  // namespace istio

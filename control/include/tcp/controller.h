@@ -22,7 +22,7 @@
 
 namespace istio {
 namespace mixer_control {
-  namespace tcp {
+namespace tcp {
 
 // An interface to support Mixer control.
 // It takes TcpClientConfig and performs tasks to enforce
@@ -46,17 +46,14 @@ class Controller {
     const ::istio::mixer::v1::config::client::TcpClientConfig& config;
 
     // Some plaform functions for mixer client library.
-    ::istio::mixer_client::TransportCheckFunc check_transport;
-    ::istio::mixer_client::TransportReportFunc report_transport;
-    ::istio::mixer_client::TimerCreateFunc timer_create_func;
-    ::istio::mixer_client::UUIDGenerateFunc uuid_generate_func;
+    ::istio::mixer_client::Environment env;
   };
 
   // The factory function to create a new instance of the controller.
   static std::unique_ptr<Controller> Create(const Options& options);
 };
 
-  }  // namespace tcp
+}  // namespace tcp
 }  // namespace mixer_control
 }  // namespace istio
 

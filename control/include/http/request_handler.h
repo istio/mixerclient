@@ -17,16 +17,17 @@
 #define MIXERCONTROL_HTTP_REQUEST_HANDLER_H
 
 #include "check_data.h"
-#include "report_data.h"
 #include "include/client.h"
+#include "report_data.h"
 
 namespace istio {
 namespace mixer_control {
-name
+namespace http {
+
 // The interface to handle a HTTP request.
-class HttpRequestHandler {
+class RequestHandler {
  public:
-  virtual ~HttpRequestHandler() {}
+  virtual ~RequestHandler() {}
 
   // Perform a Check call. It will:
   // * extract forwarded attributes from client proxy
@@ -35,7 +36,7 @@ class HttpRequestHandler {
   // * if necessary, forward some attributes to downstream
   // * make a Check call.
   virtual ::istio::mixer_client::CancelFunc Check(
-      HttpCheckData* check_data,
+      CheckData* check_data,
       ::istio::mixer_client::TransportCheckFunc transport,
       ::istio::mixer_client::DoneFunc on_done) = 0;
 
@@ -43,9 +44,10 @@ class HttpRequestHandler {
   // * check service config to see if Report is required
   // * extract more report attributes
   // * make a Report call.
-  virtual void Report(HttpReportData* report_data) = 0;
+  virtual void Report(ReportData* report_data) = 0;
 };
 
+}  // namespace http
 }  // namespace mixer_control
 }  // namespace istio
 

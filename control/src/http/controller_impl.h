@@ -19,11 +19,12 @@
 #include <memory>
 
 #include "client_context.h"
-#include "control/include/controller.h"
+#include "control/include/http/controller.h"
 #include "service_context.h"
 
 namespace istio {
 namespace mixer_control {
+namespace http {
 
 // The class to implement Controller interface.
 class ControllerImpl : public Controller {
@@ -34,27 +35,19 @@ class ControllerImpl : public Controller {
       : client_context_(client_context) {}
 
   // Creates a HTTP request handler
-  std::unique_ptr<HttpRequestHandler> CreateHttpRequestHandler(
+  std::unique_ptr<RequestHandler> CreateRequestHandler(
       const PerRouteConfig& per_route_config) override;
-
-  // Creates a TCP request handler
-  std::unique_ptr<TcpRequestHandler> CreateTcpRequestHandler() override;
 
  private:
   // Create service config context for HTTP.
-  std::shared_ptr<ServiceContext> GetHttpServiceContext(
+  std::shared_ptr<ServiceContext> GetServiceContext(
       const PerRouteConfig& per_route_config);
-
-  // Create service config context for TCP
-  std::shared_ptr<ServiceContext> GetTcpServiceContext();
 
   // The client context object to hold client config and client cache.
   std::shared_ptr<ClientContext> client_context_;
-
-  // tcp service context
-  std::shared_ptr<ServiceContext> tcp_service_context_;
 };
 
+}  // namespace http
 }  // namespace mixer_control
 }  // namespace istio
 

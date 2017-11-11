@@ -14,37 +14,32 @@
  */
 
 #include "controller_impl.h"
-#include "http_request_handler_impl.h"
-#include "tcp_request_handler_impl.h"
+#include "request_handler_impl.h"
 
-using ::istio::mixer::v1::config::client::MixerControlConfig;
+using ::istio::mixer::v1::config::client::ServiceConfig;
 
 namespace istio {
 namespace mixer_control {
+namespace http {
 
 ControllerImpl::ControllerImpl(const Options& data) {
   client_context_.reset(new ClientContext(data));
 }
 
-std::unique_ptr<HttpRequestHandler> ControllerImpl::CreateHttpRequestHandler(
+std::unique_ptr<RequestHandler> ControllerImpl::CreateRequestHandler(
     const PerRouteConfig& per_route_config) {
-  return std::unique_ptr<HttpRequestHandler>(
-      new HttpRequestHandlerImpl(GetHttpServiceContext(per_route_config)));
+  return std::unique_ptr<RequestHandler>(
+      new RequestHandlerImpl(GetServiceContext(per_route_config)));
 }
 
-std::unique_ptr<TcpRequestHandler> ControllerImpl::CreateTcpRequestHandler() {
-  return std::unique_ptr<TcpRequestHandler>(
-      new TcpRequestHandlerImpl(GetTcpServiceContext()));
-}
-
-std::shared_ptr<ServiceContext> ControllerImpl::GetHttpServiceContext(
+std::shared_ptr<ServiceContext> ControllerImpl::GetServiceContext(
     const PerRouteConfig& config) {
   // If use legacy config
   if (config.legacy_config) {
     return std::make_shared<ServiceContext>(client_context_,
                                             *config.legacy_config);
   }
-  auto config_map = client_context_->config().control_configs();
+  auto config_map = client_context_->config().service_configs();
   auto it = config_map.find(config.destination_service);
   if (it == config_map.end()) {
     it = config_map.find(
@@ -54,22 +49,10 @@ std::shared_ptr<ServiceContext> ControllerImpl::GetHttpServiceContext(
   return std::make_shared<ServiceContext>(client_context_, it->second);
 }
 
-std::shared_ptr<ServiceContext> ControllerImpl::GetTcpServiceContext() {
-  if (!tcp_service_context_) {
-    MixerControlConfig config;
-    // Report is always on
-    config.set_enable_mixer_report(true);
-    config.set_enable_mixer_check(
-        !client_context_->config().disable_tcp_check_calls());
-    tcp_service_context_ =
-        std::make_shared<ServiceContext>(client_context_, config);
-  }
-  return tcp_service_context_;
-}
-
 std::unique_ptr<Controller> Controller::Create(const Options& data) {
   return std::unique_ptr<Controller>(new ControllerImpl(data));
 }
 
+}  // namespace http
 }  // namespace mixer_control
 }  // namespace istio

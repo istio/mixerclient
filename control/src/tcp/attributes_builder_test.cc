@@ -13,17 +13,16 @@
  * limitations under the License.
  */
 
-#include "tcp_attributes_builder.h"
+#include "attributes_builder.h"
 
-#include "attribute_names.h"
+#include "control/src/attribute_names.h"
 #include "google/protobuf/text_format.h"
 #include "google/protobuf/util/message_differencer.h"
 #include "gtest/gtest.h"
 #include "include/attributes_builder.h"
-#include "mock_tcp_check_data.h"
-#include "mock_tcp_report_data.h"
+#include "mock_check_data.h"
+#include "mock_report_data.h"
 
-using ::istio::mixer_client::AttributesBuilder;
 using ::google::protobuf::TextFormat;
 using ::google::protobuf::util::MessageDifferencer;
 
@@ -32,6 +31,7 @@ using ::testing::Invoke;
 
 namespace istio {
 namespace mixer_control {
+namespace tcp {
 namespace {
 
 const char kCheckAttributes[] = R"(
@@ -130,13 +130,13 @@ attributes {
 
 void ClearContextTime(RequestContext* request) {
   // Override timestamp with -
-  AttributesBuilder builder(&request->attributes);
+  ::istio::mixer_client::AttributesBuilder builder(&request->attributes);
   std::chrono::time_point<std::chrono::system_clock> time0;
   builder.AddTimestamp(AttributeName::kContextTime, time0);
 }
 
-TEST(TcpAttributesBuilderTest, TestCheckAttributes) {
-  ::testing::NiceMock<MockTcpCheckData> mock_data;
+TEST(AttributesBuilderTest, TestCheckAttributes) {
+  ::testing::NiceMock<MockCheckData> mock_data;
   EXPECT_CALL(mock_data, GetSourceIpPort(_, _))
       .WillOnce(Invoke([](std::string* ip, int* port) -> bool {
         *ip = "1.2.3.4";
@@ -150,7 +150,7 @@ TEST(TcpAttributesBuilderTest, TestCheckAttributes) {
       }));
 
   RequestContext request;
-  TcpAttributesBuilder builder(&request);
+  AttributesBuilder builder(&request);
   builder.ExtractCheckAttributes(&mock_data);
 
   ClearContextTime(&request);
@@ -166,8 +166,8 @@ TEST(TcpAttributesBuilderTest, TestCheckAttributes) {
       MessageDifferencer::Equals(request.attributes, expected_attributes));
 }
 
-TEST(TcpAttributesBuilderTest, TestReportAttributes) {
-  ::testing::NiceMock<MockTcpReportData> mock_data;
+TEST(AttributesBuilderTest, TestReportAttributes) {
+  ::testing::NiceMock<MockReportData> mock_data;
   EXPECT_CALL(mock_data, GetDestinationIpPort(_, _))
       .WillOnce(Invoke([](std::string* ip, int* port) -> bool {
         *ip = "1.2.3.4";
@@ -175,14 +175,14 @@ TEST(TcpAttributesBuilderTest, TestReportAttributes) {
         return true;
       }));
   EXPECT_CALL(mock_data, GetReportInfo(_))
-      .WillOnce(Invoke([](TcpReportData::ReportInfo* info) {
+      .WillOnce(Invoke([](ReportData::ReportInfo* info) {
         info->received_bytes = 100;
         info->send_bytes = 200;
         info->duration = std::chrono::nanoseconds(1);
       }));
 
   RequestContext request;
-  TcpAttributesBuilder builder(&request);
+  AttributesBuilder builder(&request);
   builder.ExtractReportAttributes(&mock_data);
 
   ClearContextTime(&request);
@@ -199,5 +199,6 @@ TEST(TcpAttributesBuilderTest, TestReportAttributes) {
 }
 
 }  // namespace
+}  // namespace tcp
 }  // namespace mixer_control
 }  // namespace istio

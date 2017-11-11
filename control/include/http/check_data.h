@@ -21,11 +21,12 @@
 
 namespace istio {
 namespace mixer_control {
+namespace http {
 
 // The interface to extract HTTP data for Mixer check.
-class HttpCheckData {
+class CheckData {
  public:
-  virtual ~HttpCheckData() {}
+  virtual ~CheckData() {}
 
   // Find "x-istio-attributes" HTTP header.
   // If found, base64 decode its value,  pass it out
@@ -59,6 +60,7 @@ class HttpCheckData {
                                  std::string* value) const = 0;
 };
 
+}  // namespace http
 }  // namespace mixer_control
 }  // namespace istio
 

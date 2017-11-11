@@ -13,19 +13,18 @@
  * limitations under the License.
  */
 
-#include "http_attributes_builder.h"
+#include "attributes_builder.h"
 
-#include "attribute_names.h"
+#include "control/src/attribute_names.h"
 #include "google/protobuf/text_format.h"
 #include "google/protobuf/util/message_differencer.h"
 #include "gtest/gtest.h"
 #include "include/attributes_builder.h"
-#include "mock_http_check_data.h"
-#include "mock_http_report_data.h"
+#include "mock_check_data.h"
+#include "mock_report_data.h"
 
 using ::istio::mixer::v1::Attributes;
 using ::istio::mixer::v1::Attributes_StringMap;
-using ::istio::mixer_client::AttributesBuilder;
 using ::google::protobuf::TextFormat;
 using ::google::protobuf::util::MessageDifferencer;
 
@@ -34,6 +33,7 @@ using ::testing::Invoke;
 
 namespace istio {
 namespace mixer_control {
+namespace http {
 namespace {
 
 const char kCheckAttributes[] = R"(
@@ -156,13 +156,13 @@ attributes {
 
 void ClearContextTime(const std::string& name, RequestContext* request) {
   // Override timestamp with -
-  AttributesBuilder builder(&request->attributes);
+  ::istio::mixer_client::AttributesBuilder builder(&request->attributes);
   std::chrono::time_point<std::chrono::system_clock> time0;
   builder.AddTimestamp(name, time0);
 }
 
-TEST(HttpAttributesBuilderTest, TestExtractV1ForwardedAttributes) {
-  ::testing::NiceMock<MockHttpCheckData> mock_data;
+TEST(AttributesBuilderTest, TestExtractV1ForwardedAttributes) {
+  ::testing::NiceMock<MockCheckData> mock_data;
   EXPECT_CALL(mock_data, ExtractIstioAttributes(_))
       .WillOnce(Invoke([](std::string* data) -> bool {
         // v1 format
@@ -173,7 +173,7 @@ TEST(HttpAttributesBuilderTest, TestExtractV1ForwardedAttributes) {
       }));
 
   RequestContext request;
-  HttpAttributesBuilder builder(&request);
+  AttributesBuilder builder(&request);
   builder.ExtractForwardedAttributes(&mock_data);
 
   Attributes attr;
@@ -181,11 +181,11 @@ TEST(HttpAttributesBuilderTest, TestExtractV1ForwardedAttributes) {
   EXPECT_TRUE(MessageDifferencer::Equals(request.attributes, attr));
 }
 
-TEST(HttpAttributesBuilderTest, TestExtractV2ForwardedAttributes) {
+TEST(AttributesBuilderTest, TestExtractV2ForwardedAttributes) {
   Attributes attr;
   (*attr.mutable_attributes())["test_key"].set_string_value("test_value");
 
-  ::testing::NiceMock<MockHttpCheckData> mock_data;
+  ::testing::NiceMock<MockCheckData> mock_data;
   EXPECT_CALL(mock_data, ExtractIstioAttributes(_))
       .WillOnce(Invoke([&attr](std::string* data) -> bool {
         attr.SerializeToString(data);
@@ -193,14 +193,14 @@ TEST(HttpAttributesBuilderTest, TestExtractV2ForwardedAttributes) {
       }));
 
   RequestContext request;
-  HttpAttributesBuilder builder(&request);
+  AttributesBuilder builder(&request);
   builder.ExtractForwardedAttributes(&mock_data);
   EXPECT_TRUE(MessageDifferencer::Equals(request.attributes, attr));
 }
 
-TEST(HttpAttributesBuilderTest, TestForwardAttributes) {
+TEST(AttributesBuilderTest, TestForwardAttributes) {
   Attributes forwarded_attr;
-  ::testing::NiceMock<MockHttpCheckData> mock_data;
+  ::testing::NiceMock<MockCheckData> mock_data;
   EXPECT_CALL(mock_data, AddIstioAttributes(_))
       .WillOnce(Invoke([&forwarded_attr](const std::string& data) {
         EXPECT_TRUE(forwarded_attr.ParseFromString(data));
@@ -210,12 +210,12 @@ TEST(HttpAttributesBuilderTest, TestForwardAttributes) {
   (*origin_attr.mutable_attributes())["test_key"].set_string_value(
       "test_value");
 
-  HttpAttributesBuilder::ForwardAttributes(origin_attr, &mock_data);
+  AttributesBuilder::ForwardAttributes(origin_attr, &mock_data);
   EXPECT_TRUE(MessageDifferencer::Equals(origin_attr, forwarded_attr));
 }
 
-TEST(HttpAttributesBuilderTest, TestCheckAttributes) {
-  ::testing::NiceMock<MockHttpCheckData> mock_data;
+TEST(AttributesBuilderTest, TestCheckAttributes) {
+  ::testing::NiceMock<MockCheckData> mock_data;
   EXPECT_CALL(mock_data, GetSourceIpPort(_, _))
       .WillOnce(Invoke([](std::string* ip, int* port) -> bool {
         *ip = "1.2.3.4";
@@ -235,20 +235,20 @@ TEST(HttpAttributesBuilderTest, TestCheckAttributes) {
         return map;
       }));
   EXPECT_CALL(mock_data, FindRequestHeader(_, _))
-      .WillRepeatedly(Invoke([](HttpCheckData::HeaderType header_type,
-                                std::string* value) -> bool {
-        if (header_type == HttpCheckData::HEADER_PATH) {
-          *value = "/books";
-          return true;
-        } else if (header_type == HttpCheckData::HEADER_HOST) {
-          *value = "localhost";
-          return true;
-        }
-        return false;
-      }));
+      .WillRepeatedly(Invoke(
+          [](CheckData::HeaderType header_type, std::string* value) -> bool {
+            if (header_type == CheckData::HEADER_PATH) {
+              *value = "/books";
+              return true;
+            } else if (header_type == CheckData::HEADER_HOST) {
+              *value = "localhost";
+              return true;
+            }
+            return false;
+          }));
 
   RequestContext request;
-  HttpAttributesBuilder builder(&request);
+  AttributesBuilder builder(&request);
   builder.ExtractCheckAttributes(&mock_data);
 
   ClearContextTime(AttributeName::kRequestTime, &request);
@@ -264,8 +264,8 @@ TEST(HttpAttributesBuilderTest, TestCheckAttributes) {
       MessageDifferencer::Equals(request.attributes, expected_attributes));
 }
 
-TEST(HttpAttributesBuilderTest, TestReportAttributes) {
-  ::testing::NiceMock<MockHttpReportData> mock_data;
+TEST(AttributesBuilderTest, TestReportAttributes) {
+  ::testing::NiceMock<MockReportData> mock_data;
   EXPECT_CALL(mock_data, GetResponseHeaders())
       .WillOnce(Invoke([]() -> std::map<std::string, std::string> {
         std::map<std::string, std::string> map;
@@ -274,7 +274,7 @@ TEST(HttpAttributesBuilderTest, TestReportAttributes) {
         return map;
       }));
   EXPECT_CALL(mock_data, GetReportInfo(_))
-      .WillOnce(Invoke([](HttpReportData::ReportInfo* info) {
+      .WillOnce(Invoke([](ReportData::ReportInfo* info) {
         info->received_bytes = 100;
         info->send_bytes = 200;
         info->duration = std::chrono::nanoseconds(1);
@@ -282,7 +282,7 @@ TEST(HttpAttributesBuilderTest, TestReportAttributes) {
       }));
 
   RequestContext request;
-  HttpAttributesBuilder builder(&request);
+  AttributesBuilder builder(&request);
   builder.ExtractReportAttributes(&mock_data);
 
   ClearContextTime(AttributeName::kResponseTime, &request);
@@ -299,5 +299,6 @@ TEST(HttpAttributesBuilderTest, TestReportAttributes) {
 }
 
 }  // namespace
+}  // namespace http
 }  // namespace mixer_control
 }  // namespace istio

@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#include "tcp_request_handler_impl.h"
-#include "tcp_attributes_builder.h"
+#include "request_handler_impl.h"
+#include "attributes_builder.h"
 
 using ::google::protobuf::util::Status;
 using ::istio::mixer_client::CancelFunc;
@@ -22,40 +22,40 @@ using ::istio::mixer_client::DoneFunc;
 
 namespace istio {
 namespace mixer_control {
+namespace tcp {
 
-TcpRequestHandlerImpl::TcpRequestHandlerImpl(
-    std::shared_ptr<ServiceContext> service_context)
-    : service_context_(service_context) {}
+RequestHandlerImpl::RequestHandlerImpl(
+    std::shared_ptr<ClientContext> client_context)
+    : client_context_(client_context) {}
 
-CancelFunc TcpRequestHandlerImpl::Check(TcpCheckData* check_data,
-                                        DoneFunc on_done) {
-  if (service_context_->enable_mixer_check() ||
-      service_context_->enable_mixer_report()) {
-    service_context_->AddStaticAttributes(&request_context_);
+CancelFunc RequestHandlerImpl::Check(CheckData* check_data, DoneFunc on_done) {
+  if (client_context_->enable_mixer_check() ||
+      client_context_->enable_mixer_report()) {
+    client_context_->AddStaticAttributes(&request_context_);
 
-    TcpAttributesBuilder builder(&request_context_);
+    AttributesBuilder builder(&request_context_);
     builder.ExtractCheckAttributes(check_data);
   }
 
-  if (!service_context_->enable_mixer_check()) {
+  if (!client_context_->enable_mixer_check()) {
     on_done(Status::OK);
     return nullptr;
   }
 
-  return service_context_->client_context()->SendCheck(nullptr, on_done,
-                                                       &request_context_);
+  return client_context_->SendCheck(nullptr, on_done, &request_context_);
 }
 
 // Make remote report call.
-void TcpRequestHandlerImpl::Report(TcpReportData* report_data) {
-  if (!service_context_->enable_mixer_report()) {
+void RequestHandlerImpl::Report(ReportData* report_data) {
+  if (!client_context_->enable_mixer_report()) {
     return;
   }
-  TcpAttributesBuilder builder(&request_context_);
+  AttributesBuilder builder(&request_context_);
   builder.ExtractReportAttributes(report_data);
 
-  service_context_->client_context()->SendReport(request_context_);
+  client_context_->SendReport(request_context_);
 }
 
+}  // namespace tcp
 }  // namespace mixer_control
 }  // namespace istio

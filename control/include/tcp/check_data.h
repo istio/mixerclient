@@ -20,11 +20,12 @@
 
 namespace istio {
 namespace mixer_control {
+namespace tcp {
 
 // The interface to extract TCP data for Mixer check call.
-class TcpCheckData {
+class CheckData {
  public:
-  virtual ~TcpCheckData() {}
+  virtual ~CheckData() {}
 
   // Get downstream tcp connection ip and port.
   virtual bool GetSourceIpPort(std::string* ip, int* port) const = 0;
@@ -33,6 +34,7 @@ class TcpCheckData {
   virtual bool GetSourceUser(std::string* user) const = 0;
 };
 
+}  // namespace tcp
 }  // namespace mixer_control
 }  // namespace istio
 

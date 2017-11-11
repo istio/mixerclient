@@ -16,37 +16,38 @@
 #ifndef MIXERCONTROL_HTTP_ATTRIBUTES_BUILDER_H
 #define MIXERCONTROL_HTTP_ATTRIBUTES_BUILDER_H
 
-#include "control/include/http_check_data.h"
-#include "control/include/http_report_data.h"
-#include "request_context.h"
+#include "control/include/http/check_data.h"
+#include "control/include/http/report_data.h"
+#include "control/src/request_context.h"
 
 namespace istio {
 namespace mixer_control {
+namespace http {
 
 // The context for each HTTP request.
-class HttpAttributesBuilder {
+class AttributesBuilder {
  public:
-  HttpAttributesBuilder(RequestContext* request) : request_(request) {}
+  AttributesBuilder(RequestContext* request) : request_(request) {}
 
   // Extract forwarded attributes from HTTP header.
-  void ExtractForwardedAttributes(HttpCheckData* check_data);
+  void ExtractForwardedAttributes(CheckData* check_data);
   // Forward attributes to upstream proxy.
   static void ForwardAttributes(
-      const ::istio::mixer::v1::Attributes& attributes,
-      HttpCheckData* check_data);
+      const ::istio::mixer::v1::Attributes& attributes, CheckData* check_data);
 
   // Extract attributes for Check call.
-  void ExtractCheckAttributes(HttpCheckData* check_data);
+  void ExtractCheckAttributes(CheckData* check_data);
   // Extract attributes for Report call.
-  void ExtractReportAttributes(HttpReportData* report_data);
+  void ExtractReportAttributes(ReportData* report_data);
 
  private:
   // Extract HTTP header attributes
-  void ExtractRequestHeaderAttributes(HttpCheckData* check_data);
+  void ExtractRequestHeaderAttributes(CheckData* check_data);
   // The request context object.
   RequestContext* request_;
 };
 
+}  // namespace http
 }  // namespace mixer_control
 }  // namespace istio
 

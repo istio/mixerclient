@@ -22,13 +22,14 @@
 
 namespace istio {
 namespace mixer_control {
+namespace http {
 
 // The context to hold service config for both HTTP and TCP.
 class ServiceContext {
  public:
   ServiceContext(
       std::shared_ptr<ClientContext> client_context,
-      const ::istio::mixer::v1::config::client::MixerControlConfig& config)
+      const ::istio::mixer::v1::config::client::ServiceConfig& config)
       : client_context_(client_context), service_config_(config) {
     // Merge client config mixer attributes.
     service_config_.mutable_mixer_attributes()->MergeFrom(
@@ -58,9 +59,10 @@ class ServiceContext {
   std::shared_ptr<ClientContext> client_context_;
 
   // The service config.
-  ::istio::mixer::v1::config::client::MixerControlConfig service_config_;
+  ::istio::mixer::v1::config::client::ServiceConfig service_config_;
 };
 
+}  // namespace http
 }  // namespace mixer_control
 }  // namespace istio
 

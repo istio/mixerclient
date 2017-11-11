@@ -13,23 +13,25 @@
  * limitations under the License.
  */
 
-#ifndef MIXERCONTROL_MOCK_TCP_CHECK_DATA_H
-#define MIXERCONTROL_MOCK_TCP_CHECK_DATA_H
+#ifndef MIXERCONTROL_HTTP_MOCK_REPORT_DATA_H
+#define MIXERCONTROL_HTTP_MOCK_REPORT_DATA_H
 
-#include "control/include/tcp_check_data.h"
+#include "control/include/http/report_data.h"
 #include "gmock/gmock.h"
 
 namespace istio {
 namespace mixer_control {
+namespace http {
 
-// The mock object for TcpCheckData interface.
-class MockTcpCheckData : public TcpCheckData {
+// The mock object for ReportData interface.
+class MockReportData : public ReportData {
  public:
-  MOCK_CONST_METHOD2(GetSourceIpPort, bool(std::string* ip, int* port));
-  MOCK_CONST_METHOD1(GetSourceUser, bool(std::string* user));
+  MOCK_CONST_METHOD0(GetResponseHeaders, std::map<std::string, std::string>());
+  MOCK_CONST_METHOD1(GetReportInfo, void(ReportInfo* info));
 };
 
+}  // namespace http
 }  // namespace mixer_control
 }  // namespace istio
 
-#endif  // MIXERCONTROL_MOCK_TCP_CHECK_DATA_H
+#endif  // MIXERCONTROL_HTTP_MOCK_REPORT_DATA_H

@@ -13,18 +13,17 @@
  * limitations under the License.
  */
 
-#include "tcp_attributes_builder.h"
+#include "attributes_builder.h"
 
-#include "attribute_names.h"
+#include "control/src/attribute_names.h"
 #include "include/attributes_builder.h"
-
-using ::istio::mixer_client::AttributesBuilder;
 
 namespace istio {
 namespace mixer_control {
+namespace tcp {
 
-void TcpAttributesBuilder::ExtractCheckAttributes(TcpCheckData* check_data) {
-  AttributesBuilder builder(&request_->attributes);
+void AttributesBuilder::ExtractCheckAttributes(CheckData* check_data) {
+  ::istio::mixer_client::AttributesBuilder builder(&request_->attributes);
 
   std::string source_ip;
   int source_port;
@@ -42,10 +41,10 @@ void TcpAttributesBuilder::ExtractCheckAttributes(TcpCheckData* check_data) {
   builder.AddString(AttributeName::kContextProtocol, "tcp");
 }
 
-void TcpAttributesBuilder::ExtractReportAttributes(TcpReportData* report_data) {
-  AttributesBuilder builder(&request_->attributes);
+void AttributesBuilder::ExtractReportAttributes(ReportData* report_data) {
+  ::istio::mixer_client::AttributesBuilder builder(&request_->attributes);
 
-  TcpReportData::ReportInfo info;
+  ReportData::ReportInfo info;
   report_data->GetReportInfo(&info);
   builder.AddInt64(AttributeName::kConnectionReceviedBytes,
                    info.received_bytes);
@@ -68,5 +67,6 @@ void TcpAttributesBuilder::ExtractReportAttributes(TcpReportData* report_data) {
                        std::chrono::system_clock::now());
 }
 
+}  // namespace tcp
 }  // namespace mixer_control
 }  // namespace istio

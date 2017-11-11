@@ -13,32 +13,25 @@
  * limitations under the License.
  */
 
-#ifndef MIXERCONTROL_TCP_ATTRIBUTES_BUILDER_H
-#define MIXERCONTROL_TCP_ATTRIBUTES_BUILDER_H
+#ifndef MIXERCONTROL_TCP_MOCK_REPORT_DATA_H
+#define MIXERCONTROL_TCP_MOCK_REPORT_DATA_H
 
-#include "control/include/tcp_check_data.h"
-#include "control/include/tcp_request_handler.h"
-#include "request_context.h"
+#include "control/include/tcp/report_data.h"
+#include "gmock/gmock.h"
 
 namespace istio {
 namespace mixer_control {
+namespace tcp {
 
-// The builder class to add TCP attributes.
-class TcpAttributesBuilder {
+// The mock object for ReportData interface.
+class MockReportData : public ReportData {
  public:
-  TcpAttributesBuilder(RequestContext* request) : request_(request) {}
-
-  // Extract attributes for Check.
-  void ExtractCheckAttributes(TcpCheckData* check_data);
-  // Extract attributes for Report.
-  void ExtractReportAttributes(TcpReportData* report_data);
-
- private:
-  // The request context object.
-  RequestContext* request_;
+  MOCK_CONST_METHOD2(GetDestinationIpPort, bool(std::string* ip, int* port));
+  MOCK_CONST_METHOD1(GetReportInfo, void(ReportInfo* info));
 };
 
+}  // namespace tcp
 }  // namespace mixer_control
 }  // namespace istio
 
-#endif  // MIXERCONTROL_TCP_ATTRIBUTES_BUILDER_H
+#endif  // MIXERCONTROL_TCP_MOCK_REPORT_DATA_H
