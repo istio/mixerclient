@@ -16,8 +16,8 @@
 #ifndef MIXERCONTROL_TCP_REQUEST_HANDLER_H
 #define MIXERCONTROL_TCP_REQUEST_HANDLER_H
 
-#include "include/client.h"
 #include "check_data.h"
+#include "include/client.h"
 #include "report_data.h"
 
 namespace istio {

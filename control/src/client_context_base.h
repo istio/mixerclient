@@ -30,11 +30,11 @@ class ClientContextBase {
   ClientContextBase(
       const ::istio::mixer::v1::config::client::TransportConfig& config,
       const ::istio::mixer_client::Environment& env);
-  
+
   // A constructor for unit-test to pass in a mock mixer_client
   ClientContextBase(
-		    std::unique_ptr<::istio::mixer_client::MixerClient> mixer_client)
-    : mixer_client_(std::move(mixer_client)) {}
+      std::unique_ptr<::istio::mixer_client::MixerClient> mixer_client)
+      : mixer_client_(std::move(mixer_client)) {}
   // virtual destrutor
   virtual ~ClientContextBase() {}
 
