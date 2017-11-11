@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef MIXERCONTROL_SERVICE_CONTEXT_H
-#define MIXERCONTROL_SERVICE_CONTEXT_H
+#ifndef MIXERCONTROL_HTTP_SERVICE_CONTEXT_H
+#define MIXERCONTROL_HTTP_SERVICE_CONTEXT_H
 
 #include "client_context.h"
 #include "google/protobuf/stubs/status.h"
@@ -66,4 +66,4 @@ class ServiceContext {
 }  // namespace mixer_control
 }  // namespace istio
 
-#endif  // MIXERCONTROL_SERVICE_CONTEXT_H
+#endif  // MIXERCONTROL_HTTP_SERVICE_CONTEXT_H

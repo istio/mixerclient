@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef MIXERCONTROL_CONTROLLER_IMPL_H
-#define MIXERCONTROL_CONTROLLER_IMPL_H
+#ifndef MIXERCONTROL_HTTP_CONTROLLER_IMPL_H
+#define MIXERCONTROL_HTTP_CONTROLLER_IMPL_H
 
 #include <memory>
 
@@ -51,4 +51,4 @@ class ControllerImpl : public Controller {
 }  // namespace mixer_control
 }  // namespace istio
 
-#endif  // MIXERCONTROL_CONTROLLER_IMPL_H
+#endif  // MIXERCONTROL_HTTP_CONTROLLER_IMPL_H
