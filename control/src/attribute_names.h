@@ -23,44 +23,44 @@ namespace mixer_control {
 
 // Define attribute names
 struct AttributeName {
-  static const std::string kSourceUser;
+  static const char kSourceUser[];
 
-  static const std::string kRequestHeaders;
-  static const std::string kRequestHost;
-  static const std::string kRequestMethod;
-  static const std::string kRequestPath;
-  static const std::string kRequestReferer;
-  static const std::string kRequestScheme;
-  static const std::string kRequestSize;
-  static const std::string kRequestTime;
-  static const std::string kRequestUserAgent;
+  static const char kRequestHeaders[];
+  static const char kRequestHost[];
+  static const char kRequestMethod[];
+  static const char kRequestPath[];
+  static const char kRequestReferer[];
+  static const char kRequestScheme[];
+  static const char kRequestSize[];
+  static const char kRequestTime[];
+  static const char kRequestUserAgent[];
 
-  static const std::string kResponseCode;
-  static const std::string kResponseDuration;
-  static const std::string kResponseHeaders;
-  static const std::string kResponseSize;
-  static const std::string kResponseTime;
+  static const char kResponseCode[];
+  static const char kResponseDuration[];
+  static const char kResponseHeaders[];
+  static const char kResponseSize[];
+  static const char kResponseTime[];
 
   // TCP attributes
   // Downstream tcp connection: source ip/port.
-  static const std::string kSourceIp;
-  static const std::string kSourcePort;
+  static const char kSourceIp[];
+  static const char kSourcePort[];
   // Upstream tcp connection: destionation ip/port.
 
-  static const std::string kDestinationIp;
-  static const std::string kDestinationPort;
-  static const std::string kConnectionReceviedBytes;
-  static const std::string kConnectionReceviedTotalBytes;
-  static const std::string kConnectionSendBytes;
-  static const std::string kConnectionSendTotalBytes;
-  static const std::string kConnectionDuration;
+  static const char kDestinationIp[];
+  static const char kDestinationPort[];
+  static const char kConnectionReceviedBytes[];
+  static const char kConnectionReceviedTotalBytes[];
+  static const char kConnectionSendBytes[];
+  static const char kConnectionSendTotalBytes[];
+  static const char kConnectionDuration[];
 
   // Context attributes
-  static const std::string kContextProtocol;
-  static const std::string kContextTime;
+  static const char kContextProtocol[];
+  static const char kContextTime[];
 
   // Check status code.
-  static const std::string kCheckStatusCode;
+  static const char kCheckStatusCode[];
 };
 
 }  // namespace mixer_control

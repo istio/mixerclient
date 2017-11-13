@@ -19,46 +19,46 @@ namespace istio {
 namespace mixer_control {
 
 // Define attribute names
-const std::string AttributeName::kSourceUser = "source.user";
+const char AttributeName::kSourceUser[] = "source.user";
 
-const std::string AttributeName::kRequestHeaders = "request.headers";
-const std::string AttributeName::kRequestHost = "request.host";
-const std::string AttributeName::kRequestMethod = "request.method";
-const std::string AttributeName::kRequestPath = "request.path";
-const std::string AttributeName::kRequestReferer = "request.referer";
-const std::string AttributeName::kRequestScheme = "request.scheme";
-const std::string AttributeName::kRequestSize = "request.size";
-const std::string AttributeName::kRequestTime = "request.time";
-const std::string AttributeName::kRequestUserAgent = "request.useragent";
+const char AttributeName::kRequestHeaders[] = "request.headers";
+const char AttributeName::kRequestHost[] = "request.host";
+const char AttributeName::kRequestMethod[] = "request.method";
+const char AttributeName::kRequestPath[] = "request.path";
+const char AttributeName::kRequestReferer[] = "request.referer";
+const char AttributeName::kRequestScheme[] = "request.scheme";
+const char AttributeName::kRequestSize[] = "request.size";
+const char AttributeName::kRequestTime[] = "request.time";
+const char AttributeName::kRequestUserAgent[] = "request.useragent";
 
-const std::string AttributeName::kResponseCode = "response.code";
-const std::string AttributeName::kResponseDuration = "response.duration";
-const std::string AttributeName::kResponseHeaders = "response.headers";
-const std::string AttributeName::kResponseSize = "response.size";
-const std::string AttributeName::kResponseTime = "response.time";
+const char AttributeName::kResponseCode[] = "response.code";
+const char AttributeName::kResponseDuration[] = "response.duration";
+const char AttributeName::kResponseHeaders[] = "response.headers";
+const char AttributeName::kResponseSize[] = "response.size";
+const char AttributeName::kResponseTime[] = "response.time";
 
 // TCP attributes
 // Downstream tcp connection: source ip/port.
-const std::string AttributeName::kSourceIp = "source.ip";
-const std::string AttributeName::kSourcePort = "source.port";
+const char AttributeName::kSourceIp[] = "source.ip";
+const char AttributeName::kSourcePort[] = "source.port";
 // Upstream tcp connection: destionation ip/port.
-const std::string AttributeName::kDestinationIp = "destination.ip";
-const std::string AttributeName::kDestinationPort = "destination.port";
-const std::string AttributeName::kConnectionReceviedBytes =
+const char AttributeName::kDestinationIp[] = "destination.ip";
+const char AttributeName::kDestinationPort[] = "destination.port";
+const char AttributeName::kConnectionReceviedBytes[] =
     "connection.received.bytes";
-const std::string AttributeName::kConnectionReceviedTotalBytes =
+const char AttributeName::kConnectionReceviedTotalBytes[] =
     "connection.received.bytes_total";
-const std::string AttributeName::kConnectionSendBytes = "connection.sent.bytes";
-const std::string AttributeName::kConnectionSendTotalBytes =
+const char AttributeName::kConnectionSendBytes[] = "connection.sent.bytes";
+const char AttributeName::kConnectionSendTotalBytes[] =
     "connection.sent.bytes_total";
-const std::string AttributeName::kConnectionDuration = "connection.duration";
+const char AttributeName::kConnectionDuration[] = "connection.duration";
 
 // Context attributes
-const std::string AttributeName::kContextProtocol = "context.protocol";
-const std::string AttributeName::kContextTime = "context.time";
+const char AttributeName::kContextProtocol[] = "context.protocol";
+const char AttributeName::kContextTime[] = "context.time";
 
 // Check status code.
-const std::string AttributeName::kCheckStatusCode = "check.status";
+const char AttributeName::kCheckStatusCode[] = "check.status";
 
 }  // namespace mixer_control
 }  // namespace istio
