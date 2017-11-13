@@ -51,8 +51,7 @@ void AttributesBuilder::AddIpOrString(const std::string& name,
     return;
   }
 
-  // TODO: add error log.
-  // ENVOY_LOG(warn, "Could not convert to ip: {}: {}", name, value);
+  GOOGLE_LOG(ERROR) << "Could not convert to ip: " << name << ": " << value;
   AddString(name, value);
 }
 

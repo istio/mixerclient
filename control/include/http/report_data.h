@@ -24,6 +24,7 @@ namespace mixer_control {
 namespace http {
 
 // The interface to extract HTTP data for Mixer report.
+// Implemented by the environment (Envoy) and used by the library.
 class ReportData {
  public:
   virtual ~ReportData() {}

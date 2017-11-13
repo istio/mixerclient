@@ -24,6 +24,7 @@ namespace mixer_control {
 namespace tcp {
 
 // The interface to extract TCP data for Mixer report call.
+// Implemented by the environment (Envoy) and used by the library.
 class ReportData {
  public:
   virtual ~ReportData() {}

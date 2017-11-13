@@ -37,7 +37,7 @@ class Controller {
 
   // The initial data required by the Controller. It needs:
   // * mixer_config: the mixer client config.
-  // * some functions provided by the platform (Envoy)
+  // * some functions provided by the environment (Envoy)
   struct Options {
     Options(const ::istio::mixer::v1::config::client::TcpClientConfig& config)
         : config(config) {}

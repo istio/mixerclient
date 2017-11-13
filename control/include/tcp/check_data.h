@@ -23,6 +23,7 @@ namespace mixer_control {
 namespace tcp {
 
 // The interface to extract TCP data for Mixer check call.
+// Implemented by the environment (Envoy) and used by the library.
 class CheckData {
  public:
   virtual ~CheckData() {}

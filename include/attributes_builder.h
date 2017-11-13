@@ -90,6 +90,9 @@ class AttributesBuilder {
 
   // If key suffixed with ".ip", try to convert its value to ipv4 or ipv6.
   // If success, add it as bytes, otherwise add it as string.
+  // This is only used for legacy mixerclient config using string to pass
+  // attribute values. The new mixerclient attribute format is strongly typed,
+  // IP attribute values are already passed as bytes types.
   void AddIpOrString(const std::string& key, const std::string& str);
 
  private:

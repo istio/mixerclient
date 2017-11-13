@@ -24,6 +24,7 @@ namespace mixer_control {
 namespace http {
 
 // The interface to extract HTTP data for Mixer check.
+// Implemented by the environment (Envoy) and used by the library.
 class CheckData {
  public:
   virtual ~CheckData() {}
