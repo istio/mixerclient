@@ -112,15 +112,13 @@ cc_library(
         )
 
 
-ISTIO_API = "34f551ec1a4af4e85376348ddffd9813886e7ceb"
+ISTIO_API = "cd2246490572ef3b95524aae8940700caabeb72c"
 
 def mixerapi_repositories(protobuf_repo="@com_google_protobuf//", bind=True):
-    native.local_repository(
+    native.git_repository(
         name = "mixerapi_git",
-        path = "../api",
-#        commit = ISTIO_API,
-#        remote = "https://github.com/istio/api.git",
-#        build_file_content = BUILD,
+        commit = ISTIO_API,
+        remote = "https://github.com/istio/api.git",
     )
     if bind:
         native.bind(
