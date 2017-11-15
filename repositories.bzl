@@ -114,7 +114,7 @@ cc_library(
 
 ISTIO_API = "cd2246490572ef3b95524aae8940700caabeb72c"
 
-def mixerapi_repositories(protobuf_repo="@com_google_protobuf//", bind=True):
+def mixerapi_repositories(bind=True):
     native.git_repository(
         name = "mixerapi_git",
         commit = ISTIO_API,
