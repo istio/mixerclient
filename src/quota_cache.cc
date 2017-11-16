@@ -27,10 +27,6 @@ using ::google::protobuf::util::error::Code;
 
 namespace istio {
 namespace mixer_client {
-namespace {
-const std::string kQuotaName = "quota.name";
-const std::string kQuotaAmount = "quota.amount";
-}
 
 QuotaCache::CacheElem::CacheElem(const std::string& name) : name_(name) {
   prefetch_ = QuotaPrefetch::Create(

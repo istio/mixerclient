@@ -68,7 +68,7 @@ class QuotaCache {
     // Hold pending quota data needed to talk to server.
     struct Quota {
       std::string name;
-      uint64_t amount;
+      int64_t amount;
       bool best_effort;
 
       enum Result {

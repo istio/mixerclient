@@ -50,8 +50,7 @@ class MockCheckTransport {
 class MixerClientImplTest : public ::testing::Test {
  public:
   MixerClientImplTest() {
-    AttributesBuilder(&request_).AddString("quota.name", kRequestCount);
-
+    quotas_.push_back({kRequestCount, 1});
     CreateClient(true /* check_cache */, true /* quota_cache */);
   }
 
@@ -80,17 +79,17 @@ TEST_F(MixerClientImplTest, TestSuccessCheck) {
         on_done(Status::OK);
       }));
 
-  // Remove quota, not to test quota
-  request_.mutable_attributes()->erase("quota.name");
+  // Not to test quota
+  std::vector<Requirement> empty_quotas;
   Status done_status = Status::UNKNOWN;
-  client_->Check(request_, quotas_, empty_transport_,
+  client_->Check(request_, empty_quotas, empty_transport_,
                  [&done_status](Status status) { done_status = status; });
   EXPECT_TRUE(done_status.ok());
 
   for (int i = 0; i < 10; i++) {
     // Other calls should ba cached.
     Status done_status1 = Status::UNKNOWN;
-    client_->Check(request_, quotas_, empty_transport_,
+    client_->Check(request_, empty_quotas, empty_transport_,
                    [&done_status1](Status status) { done_status1 = status; });
     EXPECT_TRUE(done_status1.ok());
   }
@@ -109,17 +108,17 @@ TEST_F(MixerClientImplTest, TestPerRequestTransport) {
         on_done(Status::OK);
       }));
 
-  // Remove quota, not to test quota
-  request_.mutable_attributes()->erase("quota.name");
+  // Not to test quota
+  std::vector<Requirement> empty_quotas;
   Status done_status = Status::UNKNOWN;
-  client_->Check(request_, quotas_, local_check_transport.GetFunc(),
+  client_->Check(request_, empty_quotas, local_check_transport.GetFunc(),
                  [&done_status](Status status) { done_status = status; });
   EXPECT_TRUE(done_status.ok());
 
   for (int i = 0; i < 10; i++) {
     // Other calls should ba cached.
     Status done_status1 = Status::UNKNOWN;
-    client_->Check(request_, quotas_, local_check_transport.GetFunc(),
+    client_->Check(request_, empty_quotas, local_check_transport.GetFunc(),
                    [&done_status1](Status status) { done_status1 = status; });
     EXPECT_TRUE(done_status1.ok());
   }
