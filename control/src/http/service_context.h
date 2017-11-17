@@ -19,6 +19,7 @@
 #include "client_context.h"
 #include "google/protobuf/stubs/status.h"
 #include "mixer/v1/attributes.pb.h"
+#include "quota/include/config_parser.h"
 
 namespace istio {
 namespace mixer_control {
@@ -34,6 +35,12 @@ class ServiceContext {
     // Merge client config mixer attributes.
     service_config_.mutable_mixer_attributes()->MergeFrom(
         client_context->config().mixer_attributes());
+
+    // Build quota parser
+    for (const auto& quota : service_config_.quota_spec()) {
+      quota_parsers_.push_back(
+          std::move(::istio::quota::ConfigParser::Create(quota)));
+    }
   }
 
   std::shared_ptr<ClientContext> client_context() const {
@@ -47,6 +54,13 @@ class ServiceContext {
     }
   }
 
+  // Add quota requirements from quota configs.
+  void AddQuotas(RequestContext* request) const {
+    for (const auto& parser : quota_parsers_) {
+      parser->GetRequirements(request->attributes, &request->quotas);
+    }
+  }
+
   bool enable_mixer_check() const {
     return service_config_.enable_mixer_check();
   }
@@ -57,6 +71,9 @@ class ServiceContext {
  private:
   // The client context object.
   std::shared_ptr<ClientContext> client_context_;
+
+  // The quota parsers for each quota config.
+  std::vector<std::unique_ptr<::istio::quota::ConfigParser>> quota_parsers_;
 
   // The service config.
   ::istio::mixer::v1::config::client::ServiceConfig service_config_;

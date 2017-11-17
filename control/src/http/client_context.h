@@ -47,8 +47,31 @@ class ClientContext : public ClientContextBase {
     return config_;
   }
 
-  const std::vector<::istio::quota::Requirement>& legacy_quotas() const {
-    return legacy_quotas_;
+  // Append the legacy quotas.
+  void AddLegacyQuotas(std::vector<::istio::quota::Requirement>* quotas) const {
+    quotas->insert(quotas->end(), legacy_quotas_.begin(), legacy_quotas_.end());
+  }
+
+  // Get valid service name in the config map.
+  // If input service name is in the map, use it, otherwise, use the default
+  // one.
+  const std::string& GetServiceName(const std::string& service_name) const {
+    const auto& config_map = config_.service_configs();
+    auto it = config_map.find(service_name);
+    if (it == config_map.end()) {
+      return config_.default_destination_service();
+    }
+    return service_name;
+  }
+
+  // Get the service config by the name.
+  const ::istio::mixer::v1::config::client::ServiceConfig& GetServiceConfig(
+      const std::string& service_name) const {
+    const auto& config_map = config_.service_configs();
+    auto it = config_map.find(service_name);
+    // The name should be a valid one checked by GetServiceName()
+    GOOGLE_CHECK(it != config_map.end());
+    return it->second;
   }
 
  private:

@@ -39,14 +39,16 @@ std::shared_ptr<ServiceContext> ControllerImpl::GetServiceContext(
     return std::make_shared<ServiceContext>(client_context_,
                                             *config.legacy_config);
   }
-  auto config_map = client_context_->config().service_configs();
-  auto it = config_map.find(config.destination_service);
-  if (it == config_map.end()) {
-    it = config_map.find(
-        client_context_->config().default_destination_service());
+
+  auto service_name =
+      client_context_->GetServiceName(config.destination_service);
+  auto service_context = service_context_map_[service_name];
+  if (!service_context) {
+    service_context = std::make_shared<ServiceContext>(
+        client_context_, client_context_->GetServiceConfig(service_name));
+    service_context_map_[service_name] = service_context;
   }
-  // TODO: cache this service context.
-  return std::make_shared<ServiceContext>(client_context_, it->second);
+  return service_context;
 }
 
 std::unique_ptr<Controller> Controller::Create(const Options& data) {
