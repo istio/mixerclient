@@ -28,19 +28,12 @@ namespace http {
 // * the mixer client object to call Check/Report with cache.
 class ClientContext : public ClientContextBase {
  public:
-  ClientContext(const Controller::Options& data)
-      : ClientContextBase(data.config.transport(), data.env),
-        config_(data.config),
-        legacy_quotas_(data.legacy_quotas) {}
-
+  ClientContext(const Controller::Options& data);
   // A constructor for unit-test to pass in a mock mixer_client
   ClientContext(
       std::unique_ptr<::istio::mixer_client::MixerClient> mixer_client,
       const ::istio::mixer::v1::config::client::HttpClientConfig& config,
-      const std::vector<::istio::quota::Requirement>& legacy_quotas)
-      : ClientContextBase(std::move(mixer_client)),
-        config_(config),
-        legacy_quotas_(legacy_quotas) {}
+      const std::vector<::istio::quota::Requirement>& legacy_quotas);
 
   // Retrieve mixer client config.
   const ::istio::mixer::v1::config::client::HttpClientConfig& config() const {
@@ -48,31 +41,16 @@ class ClientContext : public ClientContextBase {
   }
 
   // Append the legacy quotas.
-  void AddLegacyQuotas(std::vector<::istio::quota::Requirement>* quotas) const {
-    quotas->insert(quotas->end(), legacy_quotas_.begin(), legacy_quotas_.end());
-  }
+  void AddLegacyQuotas(std::vector<::istio::quota::Requirement>* quotas) const;
 
   // Get valid service name in the config map.
   // If input service name is in the map, use it, otherwise, use the default
   // one.
-  const std::string& GetServiceName(const std::string& service_name) const {
-    const auto& config_map = config_.service_configs();
-    auto it = config_map.find(service_name);
-    if (it == config_map.end()) {
-      return config_.default_destination_service();
-    }
-    return service_name;
-  }
+  const std::string& GetServiceName(const std::string& service_name) const;
 
   // Get the service config by the name.
   const ::istio::mixer::v1::config::client::ServiceConfig& GetServiceConfig(
-      const std::string& service_name) const {
-    const auto& config_map = config_.service_configs();
-    auto it = config_map.find(service_name);
-    // The name should be a valid one checked by GetServiceName()
-    GOOGLE_CHECK(it != config_map.end());
-    return it->second;
-  }
+      const std::string& service_name) const;
 
  private:
   // The http client config.

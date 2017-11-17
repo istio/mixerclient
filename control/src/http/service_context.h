@@ -30,36 +30,17 @@ class ServiceContext {
  public:
   ServiceContext(
       std::shared_ptr<ClientContext> client_context,
-      const ::istio::mixer::v1::config::client::ServiceConfig& config)
-      : client_context_(client_context), service_config_(config) {
-    // Merge client config mixer attributes.
-    service_config_.mutable_mixer_attributes()->MergeFrom(
-        client_context->config().mixer_attributes());
-
-    // Build quota parser
-    for (const auto& quota : service_config_.quota_spec()) {
-      quota_parsers_.push_back(
-          std::move(::istio::quota::ConfigParser::Create(quota)));
-    }
-  }
+      const ::istio::mixer::v1::config::client::ServiceConfig& config);
 
   std::shared_ptr<ClientContext> client_context() const {
     return client_context_;
   }
 
   // Add static mixer attributes.
-  void AddStaticAttributes(RequestContext* request) const {
-    if (service_config_.has_mixer_attributes()) {
-      request->attributes.MergeFrom(service_config_.mixer_attributes());
-    }
-  }
+  void AddStaticAttributes(RequestContext* request) const;
 
   // Add quota requirements from quota configs.
-  void AddQuotas(RequestContext* request) const {
-    for (const auto& parser : quota_parsers_) {
-      parser->GetRequirements(request->attributes, &request->quotas);
-    }
-  }
+  void AddQuotas(RequestContext* request) const;
 
   bool enable_mixer_check() const {
     return service_config_.enable_mixer_check();
