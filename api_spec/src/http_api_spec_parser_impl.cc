@@ -58,29 +58,10 @@ void HttpApiSpecParserImpl::BuildPathMatcher() {
 }
 
 void HttpApiSpecParserImpl::BuildApiKeyData() {
-  for (const auto& api_key : api_spec_.api_keys()) {
-    switch (api_key.key_case()) {
-      case APIKey::kQuery:
-        api_key_query_list_.push_back(api_key.query());
-        break;
-      case APIKey::kHeader: {
-        std::string header = api_key.header();
-        // convert to lowercase.
-        std::transform(header.begin(), header.end(), header.begin(), ::tolower);
-        api_key_header_list_.push_back(header);
-      } break;
-      case APIKey::kCookie:
-        api_key_cookie_list_.push_back(api_key.cookie());
-        break;
-      case APIKey::KEY_NOT_SET:
-        break;
-    }
-  }
-  if (api_key_query_list_.size() == 0 && api_key_header_list_.size() == 0 &&
-      api_key_cookie_list_.size() == 0) {
-    api_key_query_list_.push_back(kApiKeyQueryName1);
-    api_key_query_list_.push_back(kApiKeyQueryName2);
-    api_key_header_list_.push_back(kApiKeyHeader);
+  if (api_spec_.api_keys_size() == 0) {
+    api_spec_.add_api_keys()->set_query(kApiKeyQueryName1);
+    api_spec_.add_api_keys()->set_query(kApiKeyQueryName2);
+    api_spec_.add_api_keys()->set_header(kApiKeyHeader);
   }
 }
 
@@ -105,20 +86,26 @@ void HttpApiSpecParserImpl::AddAttributes(
 }
 
 bool HttpApiSpecParserImpl::ExtractApiKey(CheckData* check_data,
-                                          std::string* api_key) {
-  for (const auto& query : api_key_query_list_) {
-    if (check_data->FindQueryParameter(query, api_key)) {
-      return true;
-    }
-  }
-  for (const auto& header : api_key_header_list_) {
-    if (check_data->FindHeaderByName(header, api_key)) {
-      return true;
-    }
-  }
-  for (const auto& cookie : api_key_cookie_list_) {
-    if (check_data->FindCookie(cookie, api_key)) {
-      return true;
+                                          std::string* value) {
+  for (const auto& api_key : api_spec_.api_keys()) {
+    switch (api_key.key_case()) {
+      case APIKey::kQuery:
+        if (check_data->FindQueryParameter(api_key.query(), value)) {
+          return true;
+        }
+        break;
+      case APIKey::kHeader:
+        if (check_data->FindHeaderByName(api_key.header(), value)) {
+          return true;
+        }
+        break;
+      case APIKey::kCookie:
+        if (check_data->FindCookie(api_key.cookie(), value)) {
+          return true;
+        }
+        break;
+      case APIKey::KEY_NOT_SET:
+        break;
     }
   }
   return false;

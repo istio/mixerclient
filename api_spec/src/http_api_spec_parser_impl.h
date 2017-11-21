@@ -61,11 +61,6 @@ class HttpApiSpecParserImpl : public HttpApiSpecParser {
     const ::istio::mixer::v1::Attributes* attributes;
   };
   std::vector<RegexData> regex_list_;
-
-  // api-key extraction lists
-  std::vector<std::string> api_key_query_list_;
-  std::vector<std::string> api_key_header_list_;
-  std::vector<std::string> api_key_cookie_list_;
 };
 
 }  // namespace api_spec

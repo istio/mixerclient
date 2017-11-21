@@ -202,7 +202,7 @@ TEST(HttpApiSpecParserTest, TestCustomApiKey) {
   EXPECT_CALL(mock_data2, FindHeaderByName(_, _))
       .WillRepeatedly(
           Invoke([](const std::string& name, std::string* value) -> bool {
-            if (name == "api-key-header") {
+            if (name == "Api-Key-Header") {
               *value = "this-is-a-test-api-key";
               return true;
             }
