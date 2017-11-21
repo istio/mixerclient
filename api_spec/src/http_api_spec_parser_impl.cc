@@ -16,15 +16,31 @@
 #include "http_api_spec_parser_impl.h"
 #include "google/protobuf/stubs/logging.h"
 
+#include <algorithm>
+#include <cctype>
+
+using ::istio::mixer_control::http::CheckData;
 using ::istio::mixer::v1::Attributes;
+using ::istio::mixer::v1::config::client::APIKey;
 using ::istio::mixer::v1::config::client::HTTPAPISpec;
 using ::istio::mixer::v1::config::client::HTTPAPISpecPattern;
 
 namespace istio {
 namespace api_spec {
+namespace {
+// If api-key is not defined in APISpec, use following defaults.
+const std::string kApiKeyQueryName1("key");
+const std::string kApiKeyQueryName2("api_key");
+const std::string kApiKeyHeader("x-api-key");
+}  // namespace
 
 HttpApiSpecParserImpl::HttpApiSpecParserImpl(const HTTPAPISpec& api_spec)
     : api_spec_(api_spec) {
+  BuildPathMatcher();
+  BuildApiKeyData();
+}
+
+void HttpApiSpecParserImpl::BuildPathMatcher() {
   PathMatcherBuilder<const Attributes*> pmb;
   for (const auto& pattern : api_spec_.patterns()) {
     if (pattern.pattern_case() == HTTPAPISpecPattern::kUriTemplate) {
@@ -39,6 +55,33 @@ HttpApiSpecParserImpl::HttpApiSpecParserImpl(const HTTPAPISpec& api_spec)
     }
   }
   path_matcher_ = pmb.Build();
+}
+
+void HttpApiSpecParserImpl::BuildApiKeyData() {
+  for (const auto& api_key : api_spec_.api_keys()) {
+    switch (api_key.key_case()) {
+      case APIKey::kQuery:
+        api_key_query_list_.push_back(api_key.query());
+        break;
+      case APIKey::kHeader: {
+        std::string header = api_key.header();
+        // convert to lowercase.
+        std::transform(header.begin(), header.end(), header.begin(), ::tolower);
+        api_key_header_list_.push_back(header);
+      } break;
+      case APIKey::kCookie:
+        api_key_cookie_list_.push_back(api_key.cookie());
+        break;
+      case APIKey::KEY_NOT_SET:
+        break;
+    }
+  }
+  if (api_key_query_list_.size() == 0 && api_key_header_list_.size() == 0 &&
+      api_key_cookie_list_.size() == 0) {
+    api_key_query_list_.push_back(kApiKeyQueryName1);
+    api_key_query_list_.push_back(kApiKeyQueryName2);
+    api_key_header_list_.push_back(kApiKeyHeader);
+  }
 }
 
 void HttpApiSpecParserImpl::AddAttributes(
@@ -59,6 +102,26 @@ void HttpApiSpecParserImpl::AddAttributes(
       attributes->MergeFrom(*re.attributes);
     }
   }
+}
+
+bool HttpApiSpecParserImpl::ExtractApiKey(CheckData* check_data,
+                                          std::string* api_key) {
+  for (const auto& query : api_key_query_list_) {
+    if (check_data->FindQueryParameter(query, api_key)) {
+      return true;
+    }
+  }
+  for (const auto& header : api_key_header_list_) {
+    if (check_data->FindHeaderByName(header, api_key)) {
+      return true;
+    }
+  }
+  for (const auto& cookie : api_key_cookie_list_) {
+    if (check_data->FindCookie(cookie, api_key)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 std::unique_ptr<HttpApiSpecParser> HttpApiSpecParser::Create(
