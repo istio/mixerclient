@@ -29,9 +29,9 @@ namespace istio {
 namespace api_spec {
 namespace {
 // If api-key is not defined in APISpec, use following defaults.
-const std::string kApiKeyQueryName1("key");
-const std::string kApiKeyQueryName2("api_key");
-const std::string kApiKeyHeader("x-api-key");
+const std::string kApiKeyDefaultQueryName1("key");
+const std::string kApiKeyDefaultQueryName2("api_key");
+const std::string kApiKeyDefaultHeader("x-api-key");
 }  // namespace
 
 HttpApiSpecParserImpl::HttpApiSpecParserImpl(const HTTPAPISpec& api_spec)
@@ -59,9 +59,9 @@ void HttpApiSpecParserImpl::BuildPathMatcher() {
 
 void HttpApiSpecParserImpl::BuildApiKeyData() {
   if (api_spec_.api_keys_size() == 0) {
-    api_spec_.add_api_keys()->set_query(kApiKeyQueryName1);
-    api_spec_.add_api_keys()->set_query(kApiKeyQueryName2);
-    api_spec_.add_api_keys()->set_header(kApiKeyHeader);
+    api_spec_.add_api_keys()->set_query(kApiKeyDefaultQueryName1);
+    api_spec_.add_api_keys()->set_query(kApiKeyDefaultQueryName2);
+    api_spec_.add_api_keys()->set_header(kApiKeyDefaultHeader);
   }
 }
 
