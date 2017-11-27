@@ -49,8 +49,10 @@ class Referenced {
  private:
   // The keys should be absence.
   std::vector<std::string> absence_keys_;
+  //std::vector<std::tuple<std::string, std::string>> absence_keys_;
   // The keys should match exactly.
   std::vector<std::string> exact_keys_;
+  //std::vector<std::tuple<std::string, std::string>> exact_keys_;
 };
 
 }  // namespace mixer_client

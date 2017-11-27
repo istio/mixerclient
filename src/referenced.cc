@@ -34,21 +34,16 @@ const int kDelimiterLength = 1;
 const std::string kWordDelimiter = ":";
 }  // namespace
 
-bool Referenced::Fill(const ReferencedAttributes& reference) {
-  const std::vector<std::string>& global_words = GetGlobalWords();
-
-  for (const auto& match : reference.attribute_matches()) {
-    std::string name;
-    // name index from Mixer server needs to be decoded into string
-    // based on the global dictionary and per-message word list.
-    int idx = match.name();
+// decode dereferences index into str using global and local word lists.
+// decode returns false if it is unable to decode.
+bool decode(std::string& str, int idx, const std::vector<std::string>& global_words, const ReferencedAttributes& reference) {
     if (idx >= 0) {
       if ((unsigned int)idx >= global_words.size()) {
         GOOGLE_LOG(ERROR) << "Global word index is too big: " << idx
                           << " >= " << global_words.size();
         return false;
       }
-      name = global_words[idx];
+      str = global_words[idx];
     } else {
       // per-message index is negative, its format is:
       //    per_message_idx = -(array_idx + 1)
@@ -58,8 +53,21 @@ bool Referenced::Fill(const ReferencedAttributes& reference) {
                           << " >= " << reference.words_size();
         return false;
       }
-      name = reference.words(idx);
+      str = reference.words(idx);
     }
+
+    return true;
+}
+
+bool Referenced::Fill(const ReferencedAttributes& reference) {
+  const std::vector<std::string>& global_words = GetGlobalWords();
+
+  for (const auto& match : reference.attribute_matches()) {
+    //std::tuple<std::string, std::string> name;
+    std::string name;
+    if (!decode(name, match.name(), global_words, reference)) {
+      return false;
+    } 
 
     if (match.condition() == ReferencedAttributes::ABSENCE) {
       absence_keys_.push_back(name);
