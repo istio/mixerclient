@@ -37,16 +37,15 @@ const std::string kWordDelimiter = ":";
 
 // decode dereferences index into str using global and local word lists.
 // decode returns false if it is unable to decode.
-bool decode(std::string &str, int idx,
-            const std::vector<std::string> &global_words,
-            const ReferencedAttributes &reference) {
+bool decode(int idx, const std::vector<std::string> &global_words,
+            const ReferencedAttributes &reference, std::string *str) {
   if (idx >= 0) {
     if ((unsigned int)idx >= global_words.size()) {
       GOOGLE_LOG(ERROR) << "Global word index is too big: " << idx
                         << " >= " << global_words.size();
       return false;
     }
-    str = global_words[idx];
+    *str = global_words[idx];
   } else {
     // per-message index is negative, its format is:
     //    per_message_idx = -(array_idx + 1)
@@ -56,7 +55,7 @@ bool decode(std::string &str, int idx,
                         << " >= " << reference.words_size();
       return false;
     }
-    str = reference.words(idx);
+    *str = reference.words(idx);
   }
 
   return true;
@@ -68,24 +67,20 @@ bool Referenced::Fill(const Attributes &attributes,
   const auto &attributes_map = attributes.attributes();
 
   for (const auto &match : reference.attribute_matches()) {
-    // std::tuple<std::string, std::string> name;
-    std::string name;
-    if (!decode(name, match.name(), global_words, reference)) {
+    AttributeRef ar;
+    if (!decode(match.name(), global_words, reference, &ar.name)) {
       return false;
     }
 
-    std::string map_key;
-    const auto it = attributes_map.find(name);
+    const auto it = attributes_map.find(ar.name);
     if (it != attributes_map.end()) {
       const Attributes_AttributeValue &value = it->second;
       if (value.value_case() == Attributes_AttributeValue::kStringMapValue) {
-        if (!decode(map_key, match.map_key(), global_words, reference)) {
+        if (!decode(match.map_key(), global_words, reference, &ar.map_key)) {
           return false;
         }
       }
     }
-
-    AttributeRef ar = {name, map_key};
 
     if (match.condition() == ReferencedAttributes::ABSENCE) {
       absence_keys_.push_back(ar);
@@ -94,7 +89,7 @@ bool Referenced::Fill(const Attributes &attributes,
     } else if (match.condition() == ReferencedAttributes::REGEX) {
       // Don't support REGEX yet, return false to no caching the response.
       GOOGLE_LOG(ERROR) << "Received REGEX in ReferencedAttributes for "
-                        << name;
+                        << ar.name;
       return false;
     }
   }
