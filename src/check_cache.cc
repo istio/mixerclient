@@ -135,7 +135,7 @@ Status CheckCache::CacheResponse(const Attributes& attributes,
   }
 
   Referenced referenced;
-  if (!referenced.Fill(response.precondition().referenced_attributes())) {
+  if (!referenced.Fill(attributes, response.precondition().referenced_attributes())) {
     // Failed to decode referenced_attributes, not to cache this result.
     return ConvertRpcStatus(response.precondition().status());
   }
