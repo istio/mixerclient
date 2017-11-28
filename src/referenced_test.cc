@@ -130,12 +130,14 @@ TEST(ReferencedTest, FillSuccessTest) {
   ::istio::mixer::v1::Attributes attrs;
   ASSERT_TRUE(TextFormat::ParseFromString(kAttributesText, &attrs));
 
-
   Referenced referenced;
   EXPECT_TRUE(referenced.Fill(attrs, pb));
 
   EXPECT_EQ(referenced.DebugString(),
-            "Absence-keys: string-map-key[User-Agent], target.name, target.service, Exact-keys: bool-key, bytes-key, double-key, duration-key, int-key, string-key, string-map-key[If-Match], time-key, ");
+            "Absence-keys: string-map-key[User-Agent], target.name, "
+            "target.service, Exact-keys: bool-key, bytes-key, double-key, "
+            "duration-key, int-key, string-key, string-map-key[If-Match], "
+            "time-key, ");
 
   EXPECT_EQ(MD5::DebugString(referenced.Hash()),
             "602d5bbd45b623c3560d2bdb6104f3ab");

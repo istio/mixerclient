@@ -37,44 +37,47 @@ const std::string kWordDelimiter = ":";
 
 // decode dereferences index into str using global and local word lists.
 // decode returns false if it is unable to decode.
-bool decode(std::string& str, int idx, const std::vector<std::string>& global_words, const ReferencedAttributes& reference) {
-    if (idx >= 0) {
-      if ((unsigned int)idx >= global_words.size()) {
-        GOOGLE_LOG(ERROR) << "Global word index is too big: " << idx
-                          << " >= " << global_words.size();
-        return false;
-      }
-      str = global_words[idx];
-    } else {
-      // per-message index is negative, its format is:
-      //    per_message_idx = -(array_idx + 1)
-      idx = -idx - 1;
-      if (idx >= reference.words_size()) {
-        GOOGLE_LOG(ERROR) << "Per message word index is too big: " << idx
-                          << " >= " << reference.words_size();
-        return false;
-      }
-      str = reference.words(idx);
+bool decode(std::string &str, int idx,
+            const std::vector<std::string> &global_words,
+            const ReferencedAttributes &reference) {
+  if (idx >= 0) {
+    if ((unsigned int)idx >= global_words.size()) {
+      GOOGLE_LOG(ERROR) << "Global word index is too big: " << idx
+                        << " >= " << global_words.size();
+      return false;
     }
+    str = global_words[idx];
+  } else {
+    // per-message index is negative, its format is:
+    //    per_message_idx = -(array_idx + 1)
+    idx = -idx - 1;
+    if (idx >= reference.words_size()) {
+      GOOGLE_LOG(ERROR) << "Per message word index is too big: " << idx
+                        << " >= " << reference.words_size();
+      return false;
+    }
+    str = reference.words(idx);
+  }
 
-    return true;
+  return true;
 }
 
-bool Referenced::Fill(const Attributes& attributes, const ReferencedAttributes& reference) {
-  const std::vector<std::string>& global_words = GetGlobalWords();
-  const auto& attributes_map = attributes.attributes();
+bool Referenced::Fill(const Attributes &attributes,
+                      const ReferencedAttributes &reference) {
+  const std::vector<std::string> &global_words = GetGlobalWords();
+  const auto &attributes_map = attributes.attributes();
 
-  for (const auto& match : reference.attribute_matches()) {
-    //std::tuple<std::string, std::string> name;
+  for (const auto &match : reference.attribute_matches()) {
+    // std::tuple<std::string, std::string> name;
     std::string name;
     if (!decode(name, match.name(), global_words, reference)) {
       return false;
-    } 
+    }
 
     std::string map_key;
     const auto it = attributes_map.find(name);
     if (it != attributes_map.end()) {
-      const Attributes_AttributeValue& value = it->second;
+      const Attributes_AttributeValue &value = it->second;
       if (value.value_case() == Attributes_AttributeValue::kStringMapValue) {
         if (!decode(map_key, match.map_key(), global_words, reference)) {
           return false;
@@ -102,24 +105,24 @@ bool Referenced::Fill(const Attributes& attributes, const ReferencedAttributes& 
   return true;
 }
 
-bool Referenced::Signature(const Attributes& attributes,
-                           const std::string& extra_key,
-                           std::string* signature) const {
-  const auto& attributes_map = attributes.attributes();
+bool Referenced::Signature(const Attributes &attributes,
+                           const std::string &extra_key,
+                           std::string *signature) const {
+  const auto &attributes_map = attributes.attributes();
 
-  for (const AttributeRef& key : absence_keys_) {
+  for (const AttributeRef &key : absence_keys_) {
     const auto it = attributes_map.find(key.name);
     if (it == attributes_map.end()) {
       continue;
     }
 
-    const Attributes_AttributeValue& value = it->second;
+    const Attributes_AttributeValue &value = it->second;
     // if an "absence" key exists for non stringMap, return false for mis-match.
     if (value.value_case() != Attributes_AttributeValue::kStringMapValue) {
       return false;
     }
 
-    const auto& smap = value.string_map_value().entries();
+    const auto &smap = value.string_map_value().entries();
     // check subkey for the string map
     if (smap.find(key.map_key) != smap.end()) {
       return false;
@@ -127,7 +130,7 @@ bool Referenced::Signature(const Attributes& attributes,
   }
 
   MD5 hasher;
-  for (const AttributeRef& key : exact_keys_) {
+  for (const AttributeRef &key : exact_keys_) {
     const auto it = attributes_map.find(key.name);
     // if an "exact" attribute not present, return false for mismatch.
     if (it == attributes_map.end()) {
@@ -137,7 +140,7 @@ bool Referenced::Signature(const Attributes& attributes,
     hasher.Update(it->first);
     hasher.Update(kDelimiter, kDelimiterLength);
 
-    const Attributes_AttributeValue& value = it->second;
+    const Attributes_AttributeValue &value = it->second;
     switch (value.value_case()) {
       case Attributes_AttributeValue::kStringValue:
         hasher.Update(value.string_value());
@@ -172,7 +175,7 @@ bool Referenced::Signature(const Attributes& attributes,
         hasher.Update(&nanos, sizeof(nanos));
       } break;
       case Attributes_AttributeValue::kStringMapValue: {
-        const auto& smap = value.string_map_value().entries();
+        const auto &smap = value.string_map_value().entries();
         const auto sub_it = smap.find(key.map_key);
         // exact match of map_key is missing
         if (sub_it == smap.end()) {
@@ -195,9 +198,9 @@ bool Referenced::Signature(const Attributes& attributes,
   return true;
 }
 
-void updateHash(MD5& hasher, const std::vector<AttributeRef>& keys){
+void updateHash(MD5 &hasher, const std::vector<AttributeRef> &keys) {
   // keys are already sorted during Fill
-  for (const AttributeRef& key : keys) {
+  for (const AttributeRef &key : keys) {
     hasher.Update(key.name);
     hasher.Update(kDelimiter, kDelimiterLength);
     if (!key.map_key.empty()) {
@@ -221,18 +224,18 @@ std::string Referenced::Hash() const {
 std::string Referenced::DebugString() const {
   std::stringstream ss;
   ss << "Absence-keys: ";
-  for (const auto& key : absence_keys_) {
+  for (const auto &key : absence_keys_) {
     ss << key.name;
     if (!key.map_key.empty()) {
-      ss << "["+key.map_key+"]";
+      ss << "[" + key.map_key + "]";
     }
     ss << ", ";
   }
   ss << "Exact-keys: ";
-  for (const auto& key : exact_keys_) {
+  for (const auto &key : exact_keys_) {
     ss << key.name;
     if (!key.map_key.empty()) {
-      ss << "["+key.map_key+"]";
+      ss << "[" + key.map_key + "]";
     }
     ss << ", ";
   }
