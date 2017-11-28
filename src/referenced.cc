@@ -16,7 +16,6 @@
 #include "referenced.h"
 
 #include "global_dictionary.h"
-#include "utils/md5.h"
 
 #include <algorithm>
 #include <map>
@@ -60,11 +59,13 @@ bool Decode(int idx, const std::vector<std::string> &global_words,
   return true;
 }
 
+}  // namespace
+
 // Updates hasher with keys
-void UpdateHash(const std::vector<Referenced::AttributeRef> &keys,
-                MD5 *hasher) {
+void Referenced::UpdateHash(const std::vector<AttributeRef> &keys,
+                            MD5 *hasher) {
   // keys are already sorted during Fill
-  for (const Referenced::AttributeRef &key : keys) {
+  for (const AttributeRef &key : keys) {
     hasher->Update(key.name);
     hasher->Update(kDelimiter, kDelimiterLength);
     if (!key.map_key.empty()) {
@@ -73,7 +74,7 @@ void UpdateHash(const std::vector<Referenced::AttributeRef> &keys,
     }
   }
 }
-}  // namespace
+
 bool Referenced::Fill(const Attributes &attributes,
                       const ReferencedAttributes &reference) {
   const std::vector<std::string> &global_words = GetGlobalWords();

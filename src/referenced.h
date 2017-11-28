@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "mixer/v1/check.pb.h"
+#include "utils/md5.h"
 
 namespace istio {
 namespace mixer_client {
@@ -47,6 +48,7 @@ class Referenced {
   // For debug logging only.
   std::string DebugString() const;
 
+ private:
   // Holds reference to an attribute and potentially a map key
   struct AttributeRef {
     // name of the attribute
@@ -65,11 +67,14 @@ class Referenced {
     };
   };
 
- private:
   // The keys should be absence.
   std::vector<AttributeRef> absence_keys_;
+
   // The keys should match exactly.
   std::vector<AttributeRef> exact_keys_;
+
+  // Updates hasher with keys
+  static void UpdateHash(const std::vector<AttributeRef> &keys, MD5 *hasher);
 };
 
 }  // namespace mixer_client
