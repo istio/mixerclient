@@ -118,27 +118,44 @@ bool Referenced::Signature(const Attributes &attributes,
                            std::string *signature) const {
   const auto &attributes_map = attributes.attributes();
 
-  for (const AttributeRef &key : absence_keys_) {
+  for (std::size_t i = 0; i < absence_keys_.size(); ++i) {
+    const auto &key = absence_keys_[i];
     const auto it = attributes_map.find(key.name);
     if (it == attributes_map.end()) {
       continue;
     }
 
     const Attributes_AttributeValue &value = it->second;
-    // if an "absence" key exists for non stringMap, return false for mis-match.
+    // if an "absence" key exists for a non stringMap attribute, return false
+    // for mis-match.
     if (value.value_case() != Attributes_AttributeValue::kStringMapValue) {
       return false;
     }
 
+    std::string map_key = key.map_key;
     const auto &smap = value.string_map_value().entries();
-    // check subkey for the string map
-    if (smap.find(key.map_key) != smap.end()) {
-      return false;
-    }
+    // Since absence_keys_ are sorted by key.name,
+    // continue processing stringMaps until a new name is found.
+    do {
+      // if subkey is found, it is a violation of "absence" constrain.
+      if (smap.find(map_key) != smap.end()) {
+        return false;
+      }
+      // break loop if at the end or keyname changes.
+      if (i + 1 == absence_keys_.size() ||
+          absence_keys_[i + 1].name != key.name) {
+        break;
+      }
+
+      map_key = absence_keys_[++i].map_key;
+
+    } while (true);
   }
 
   MD5 hasher;
-  for (const AttributeRef &key : exact_keys_) {
+
+  for (std::size_t i = 0; i < exact_keys_.size(); ++i) {
+    const auto &key = exact_keys_[i];
     const auto it = attributes_map.find(key.name);
     // if an "exact" attribute not present, return false for mismatch.
     if (it == attributes_map.end()) {
@@ -183,17 +200,30 @@ bool Referenced::Signature(const Attributes &attributes,
         hasher.Update(&nanos, sizeof(nanos));
       } break;
       case Attributes_AttributeValue::kStringMapValue: {
+        std::string map_key = key.map_key;
         const auto &smap = value.string_map_value().entries();
-        const auto sub_it = smap.find(key.map_key);
-        // exact match of map_key is missing
-        if (sub_it == smap.end()) {
-          return false;
-        }
+        // Since exact_keys_ are sorted by key.name,
+        // continue processing stringMaps until a new name is found.
+        do {
+          const auto sub_it = smap.find(map_key);
+          // exact match of map_key is missing
+          if (sub_it == smap.end()) {
+            return false;
+          }
 
-        hasher.Update(sub_it->first);
-        hasher.Update(kDelimiter, kDelimiterLength);
-        hasher.Update(sub_it->second);
-        hasher.Update(kDelimiter, kDelimiterLength);
+          hasher.Update(sub_it->first);
+          hasher.Update(kDelimiter, kDelimiterLength);
+          hasher.Update(sub_it->second);
+          hasher.Update(kDelimiter, kDelimiterLength);
+
+          // break loop if at the end or keyname changes.
+          if (i + 1 == exact_keys_.size() ||
+              exact_keys_[i + 1].name != key.name) {
+            break;
+          }
+
+          map_key = exact_keys_[++i].map_key;
+        } while (true);
       } break;
       case Attributes_AttributeValue::VALUE_NOT_SET:
         break;
