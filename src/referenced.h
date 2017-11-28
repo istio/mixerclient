@@ -23,23 +23,6 @@
 namespace istio {
 namespace mixer_client {
 
-// Holds reference to an attribute and potentially a map key
-struct AttributeRef {
-  // name of the attribute
-  std::string name;
-  // only used if attribute is a stringMap
-  std::string map_key;
-
-  bool operator<(const AttributeRef &b) {
-    int cmp = name.compare(b.name);
-    if (cmp == 0) {
-      return map_key.compare(b.map_key) < 0;
-    }
-
-    return cmp < 0;
-  };
-};
-
 // The object to store referenced attributes used by Mixer server.
 // Mixer client cache should only use referenced attributes
 // in its cache (for both Check cache and quota cache).
@@ -63,6 +46,24 @@ class Referenced {
 
   // For debug logging only.
   std::string DebugString() const;
+
+  // Holds reference to an attribute and potentially a map key
+  struct AttributeRef {
+    // name of the attribute
+    std::string name;
+    // only used if attribute is a stringMap
+    std::string map_key;
+
+    // make vector<AttributeRef> sortable
+    bool operator<(const AttributeRef &b) {
+      int cmp = name.compare(b.name);
+      if (cmp == 0) {
+        return map_key.compare(b.map_key) < 0;
+      }
+
+      return cmp < 0;
+    };
+  };
 
  private:
   // The keys should be absence.

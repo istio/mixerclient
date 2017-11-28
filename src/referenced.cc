@@ -33,11 +33,10 @@ namespace {
 const char kDelimiter[] = "\0";
 const int kDelimiterLength = 1;
 const std::string kWordDelimiter = ":";
-}  // namespace
 
-// decode dereferences index into str using global and local word lists.
-// decode returns false if it is unable to decode.
-bool decode(int idx, const std::vector<std::string> &global_words,
+// Decode dereferences index into str using global and local word lists.
+// Decode returns false if it is unable to Decode.
+bool Decode(int idx, const std::vector<std::string> &global_words,
             const ReferencedAttributes &reference, std::string *str) {
   if (idx >= 0) {
     if ((unsigned int)idx >= global_words.size()) {
@@ -61,6 +60,20 @@ bool decode(int idx, const std::vector<std::string> &global_words,
   return true;
 }
 
+// Updates hasher with keys
+void UpdateHash(const std::vector<Referenced::AttributeRef> &keys,
+                MD5 *hasher) {
+  // keys are already sorted during Fill
+  for (const Referenced::AttributeRef &key : keys) {
+    hasher->Update(key.name);
+    hasher->Update(kDelimiter, kDelimiterLength);
+    if (!key.map_key.empty()) {
+      hasher->Update(key.map_key);
+      hasher->Update(kDelimiter, kDelimiterLength);
+    }
+  }
+}
+}  // namespace
 bool Referenced::Fill(const Attributes &attributes,
                       const ReferencedAttributes &reference) {
   const std::vector<std::string> &global_words = GetGlobalWords();
@@ -68,7 +81,7 @@ bool Referenced::Fill(const Attributes &attributes,
 
   for (const auto &match : reference.attribute_matches()) {
     AttributeRef ar;
-    if (!decode(match.name(), global_words, reference, &ar.name)) {
+    if (!Decode(match.name(), global_words, reference, &ar.name)) {
       return false;
     }
 
@@ -76,7 +89,7 @@ bool Referenced::Fill(const Attributes &attributes,
     if (it != attributes_map.end()) {
       const Attributes_AttributeValue &value = it->second;
       if (value.value_case() == Attributes_AttributeValue::kStringMapValue) {
-        if (!decode(match.map_key(), global_words, reference, &ar.map_key)) {
+        if (!Decode(match.map_key(), global_words, reference, &ar.map_key)) {
           return false;
         }
       }
@@ -193,25 +206,13 @@ bool Referenced::Signature(const Attributes &attributes,
   return true;
 }
 
-void updateHash(MD5 &hasher, const std::vector<AttributeRef> &keys) {
-  // keys are already sorted during Fill
-  for (const AttributeRef &key : keys) {
-    hasher.Update(key.name);
-    hasher.Update(kDelimiter, kDelimiterLength);
-    if (!key.map_key.empty()) {
-      hasher.Update(key.map_key);
-      hasher.Update(kDelimiter, kDelimiterLength);
-    }
-  }
-}
-
 std::string Referenced::Hash() const {
   MD5 hasher;
 
   // keys are sorted during Fill
-  updateHash(hasher, absence_keys_);
+  UpdateHash(absence_keys_, &hasher);
   hasher.Update(kWordDelimiter);
-  updateHash(hasher, exact_keys_);
+  UpdateHash(exact_keys_, &hasher);
 
   return hasher.Digest();
 }
