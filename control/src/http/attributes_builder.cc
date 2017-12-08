@@ -58,21 +58,21 @@ void AttributesBuilder::ExtractRequestHeaderAttributes(CheckData *check_data) {
 }
 
 void AttributesBuilder::ExtractRequestAuthAttributes(CheckData *check_data) {
-  std::map<std::string, std::string> attrs;
-  if (check_data->GetAuthenticationHeader(&attrs) && !attrs.empty()) {
+  std::map<std::string, std::string> payload;
+  if (check_data->GetJWTPayload(&payload) && !payload.empty()) {
     // Populate auth attributes.
     ::istio::mixer_client::AttributesBuilder builder(&request_->attributes);
-    if (attrs.count("iss") > 0 && attrs.count("sub") > 0) {
+    if (payload.count("iss") > 0 && payload.count("sub") > 0) {
       builder.AddString(AttributeName::kRequestAuthPrincipal,
-                        attrs["iss"] + "/" + attrs["sub"]);
+                        payload["iss"] + "/" + payload["sub"]);
     }
-    if (attrs.count("aud") > 0) {
-      builder.AddString(AttributeName::kRequestAuthAudiences, attrs["aud"]);
+    if (payload.count("aud") > 0) {
+      builder.AddString(AttributeName::kRequestAuthAudiences, payload["aud"]);
     }
-    if (attrs.count("azp") > 0) {
-      builder.AddString(AttributeName::kRequestAuthPresenter, attrs["azp"]);
+    if (payload.count("azp") > 0) {
+      builder.AddString(AttributeName::kRequestAuthPresenter, payload["azp"]);
     }
-    builder.AddStringMap(AttributeName::kRequestAuthClaims, attrs);
+    builder.AddStringMap(AttributeName::kRequestAuthClaims, payload);
   }
 }
 

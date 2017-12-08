@@ -77,9 +77,9 @@ class CheckData {
                           std::string *value) const = 0;
 
   // Extracts authentication information from header. Returns true on success,
-  // and saves authentication information in |attrs|. Returns false otherwise.
-  virtual bool GetAuthenticationHeader(
-      std::map<std::string, std::string> *attrs) const = 0;
+  // and saves authentication information in |payload|. Returns false otherwise.
+  virtual bool GetJWTPayload(
+      std::map<std::string, std::string> *payload) const = 0;
 };
 
 }  // namespace http
