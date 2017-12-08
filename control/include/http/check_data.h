@@ -76,8 +76,8 @@ class CheckData {
   virtual bool FindCookie(const std::string &name,
                           std::string *value) const = 0;
 
-  // Extracts authentication information from header. Returns true on success,
-  // and saves authentication information in |payload|. Returns false otherwise.
+  // If the request has a JWT token and it is verified, get its payload as
+  // string map, and return true. Otherwise return false.
   virtual bool GetJWTPayload(
       std::map<std::string, std::string> *payload) const = 0;
 };
