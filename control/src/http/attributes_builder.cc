@@ -149,6 +149,6 @@ void AttributesBuilder::ExtractReportAttributes(ReportData *report_data) {
   }
 }
 
-} // namespace http
-} // namespace mixer_control
-} // namespace istio
+}  // namespace http
+}  // namespace mixer_control
+}  // namespace istio
