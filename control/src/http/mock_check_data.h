@@ -40,6 +40,8 @@ class MockCheckData : public CheckData {
                      bool(const std::string& name, std::string* value));
   MOCK_CONST_METHOD2(FindCookie,
                      bool(const std::string& name, std::string* value));
+  MOCK_CONST_METHOD1(GetAuthenticationHeader,
+                     bool(std::map<std::string, std::string>* attrs));
 };
 
 }  // namespace http

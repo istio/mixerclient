@@ -75,6 +75,11 @@ class CheckData {
   // Find Cookie header.
   virtual bool FindCookie(const std::string& name,
                           std::string* value) const = 0;
+
+  // Extracts authentication information from header. Returns true on success,
+  // and saves authentication information in |attrs|. Returns false otherwise.
+  virtual bool GetAuthenticationHeader(
+    std::map<std::string, std::string>* attrs) const = 0;
 };
 
 }  // namespace http

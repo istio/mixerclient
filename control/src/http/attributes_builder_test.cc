@@ -101,6 +101,59 @@ attributes {
     string_value: "test_user"
   }
 }
+attributes {
+  key: "request.auth.audiences"
+  value {
+    string_value: "thisisaud"
+  }
+}
+attributes {
+  key: "request.auth.claims"
+  value {
+    string_map_value {
+      entries {
+        key: "aud"
+        value: "thisisaud"
+      }
+      entries {
+        key: "azp"
+        value: "thisisazp"
+      }
+      entries {
+        key: "email"
+        value: "thisisemail@email.com"
+      }
+      entries {
+        key: "exp"
+        value: "5112754205"
+      }
+      entries {
+        key: "iat"
+        value: "1512754205"
+      }
+      entries {
+        key: "iss"
+        value: "thisisiss"
+      }
+      entries {
+        key: "sub"
+        value: "thisissub"
+      }
+    }
+  }
+}
+attributes {
+  key: "request.auth.presenter"
+  value {
+    string_value: "thisisazp"
+  }
+}
+attributes {
+  key: "request.auth.principal"
+  value {
+    string_value: "thisisiss/thisissub"
+  }
+}
 )";
 
 const char kReportAttributes[] = R"(
@@ -246,6 +299,17 @@ TEST(AttributesBuilderTest, TestCheckAttributes) {
             }
             return false;
           }));
+  EXPECT_CALL(mock_data, GetAuthenticationHeader(_))
+      .WillOnce(Invoke([](std::map<std::string, std::string>* attrs) -> bool {
+        (*attrs)["iss"] = "thisisiss";
+        (*attrs)["sub"] = "thisissub";
+        (*attrs)["aud"] = "thisisaud";
+        (*attrs)["azp"] = "thisisazp";
+        (*attrs)["email"] = "thisisemail@email.com";
+        (*attrs)["iat"] = "1512754205";
+        (*attrs)["exp"] = "5112754205";
+        return true;
+      }));
 
   RequestContext request;
   AttributesBuilder builder(&request);

@@ -57,6 +57,25 @@ void AttributesBuilder::ExtractRequestHeaderAttributes(CheckData* check_data) {
   }
 }
 
+void AttributesBuilder::ExtractRequestAuthAttributes(CheckData* check_data) {
+  std::map<std::string, std::string> attrs;
+  if (check_data->GetAuthenticationHeader(&attrs) && !attrs.empty()) {
+    // Populate auth attributes.
+    ::istio::mixer_client::AttributesBuilder builder(&request_->attributes);
+    if (attrs.count("iss") > 0 && attrs.count("sub") > 0) {
+      builder.AddString(AttributeName::kRequestAuthPrincipal,
+        attrs["iss"] + "/" + attrs["sub"]);
+    }
+    if (attrs.count("aud") > 0) {
+      builder.AddString(AttributeName::kRequestAuthAudiences, attrs["aud"]);
+    }
+    if (attrs.count("azp") > 0) {
+      builder.AddString(AttributeName::kRequestAuthPresenter, attrs["azp"]);
+    }
+    builder.AddStringMap(AttributeName::kRequestAuthClaims, attrs);
+  }
+}
+
 void AttributesBuilder::ExtractForwardedAttributes(CheckData* check_data) {
   std::string forwarded_data;
   if (!check_data->ExtractIstioAttributes(&forwarded_data)) {
@@ -80,6 +99,7 @@ void AttributesBuilder::ExtractForwardedAttributes(CheckData* check_data) {
 
 void AttributesBuilder::ExtractCheckAttributes(CheckData* check_data) {
   ExtractRequestHeaderAttributes(check_data);
+  ExtractRequestAuthAttributes(check_data);
 
   ::istio::mixer_client::AttributesBuilder builder(&request_->attributes);
 
