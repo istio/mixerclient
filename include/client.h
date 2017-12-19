@@ -52,16 +52,16 @@ struct MixerClientOptions {
 struct Statistics {
   // Total number of check calls.
   uint64_t total_check_calls;
-  // Total number of remote check hits.
+  // Total number of remote check calls.
   uint64_t total_remote_check_calls;
-  // Total number of remote check calls that block inbound requests.
+  // Total number of remote check calls that blocking origin requests.
   uint64_t total_blocking_remote_check_calls;
 
-  // Total number of quota calls for each metric.
+  // Total number of quota calls.
   uint64_t total_quota_calls;
-  // Total number of remote quota calls for each metric.
+  // Total number of remote quota calls.
   uint64_t total_remote_quota_calls;
-  // Total number of remote quota calls that block inbound requests.
+  // Total number of remote quota calls that blocking origin requests.
   uint64_t total_blocking_remote_quota_calls;
 
   // Total number of report calls.

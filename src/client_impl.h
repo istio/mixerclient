@@ -61,10 +61,10 @@ class MixerClientImpl : public MixerClient {
   std::atomic<std::uint64_t> deduplication_id_;
 
   // Atomic objects for recording statistics.
-  // check cache hit rate:
-  // 1 - total_blocking_remote_check_calls_ / total_check_calls_.
-  // quota cache hit rate:
-  // 1 - total_blocking_remote_quota_calls_ / total_quota_calls_.
+  // check cache miss rate:
+  // total_blocking_remote_check_calls_ / total_check_calls_.
+  // quota cache miss rate:
+  // total_blocking_remote_quota_calls_ / total_quota_calls_.
   std::atomic_int_fast64_t total_check_calls_;
   std::atomic_int_fast64_t total_remote_check_calls_;
   std::atomic_int_fast64_t total_blocking_remote_check_calls_;

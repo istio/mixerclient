@@ -39,8 +39,10 @@ class ReportBatch {
   // Flush out batched reports.
   void Flush();
 
-  uint64_t total_report_calls() { return total_report_calls_; }
-  uint64_t total_remote_report_calls() { return total_remote_report_calls_; }
+  uint64_t total_report_calls() const { return total_report_calls_; }
+  uint64_t total_remote_report_calls() const {
+    return total_remote_report_calls_;
+  }
 
  private:
   void FlushWithLock();

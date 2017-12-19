@@ -96,14 +96,14 @@ TEST_F(MixerClientImplTest, TestSuccessCheck) {
 
   Statistics stat;
   client_->GetStatistics(&stat);
-  EXPECT_EQ(11, stat.total_check_calls);
+  EXPECT_EQ(stat.total_check_calls, 11);
   // The first check call is a remote blocking check call.
-  EXPECT_EQ(1, stat.total_remote_check_calls);
-  EXPECT_EQ(1, stat.total_blocking_remote_check_calls);
+  EXPECT_EQ(stat.total_remote_check_calls, 1);
+  EXPECT_EQ(stat.total_blocking_remote_check_calls, 1);
   // Empty quota does not trigger any quota call.
-  EXPECT_EQ(0, stat.total_quota_calls);
-  EXPECT_EQ(0, stat.total_remote_quota_calls);
-  EXPECT_EQ(0, stat.total_blocking_remote_quota_calls);
+  EXPECT_EQ(stat.total_quota_calls, 0);
+  EXPECT_EQ(stat.total_remote_quota_calls, 0);
+  EXPECT_EQ(stat.total_blocking_remote_quota_calls, 0);
 }
 
 TEST_F(MixerClientImplTest, TestPerRequestTransport) {
@@ -136,14 +136,14 @@ TEST_F(MixerClientImplTest, TestPerRequestTransport) {
 
   Statistics stat;
   client_->GetStatistics(&stat);
-  EXPECT_EQ(11, stat.total_check_calls);
+  EXPECT_EQ(stat.total_check_calls, 11);
   // The first check call is a remote blocking check call.
-  EXPECT_EQ(1, stat.total_remote_check_calls);
-  EXPECT_EQ(1, stat.total_blocking_remote_check_calls);
+  EXPECT_EQ(stat.total_remote_check_calls, 1);
+  EXPECT_EQ(stat.total_blocking_remote_check_calls, 1);
   // Empty quota does not trigger any quota call.
-  EXPECT_EQ(0, stat.total_quota_calls);
-  EXPECT_EQ(0, stat.total_remote_quota_calls);
-  EXPECT_EQ(0, stat.total_blocking_remote_quota_calls);
+  EXPECT_EQ(stat.total_quota_calls, 0);
+  EXPECT_EQ(stat.total_remote_quota_calls, 0);
+  EXPECT_EQ(stat.total_blocking_remote_quota_calls, 0);
 }
 
 TEST_F(MixerClientImplTest, TestNoCheckCache) {
@@ -179,12 +179,12 @@ TEST_F(MixerClientImplTest, TestNoCheckCache) {
   Statistics stat;
   client_->GetStatistics(&stat);
   // Because there is no check cache, we make remote blocking call every time.
-  EXPECT_EQ(11, stat.total_check_calls);
-  EXPECT_EQ(11, stat.total_remote_check_calls);
-  EXPECT_EQ(11, stat.total_blocking_remote_check_calls);
-  EXPECT_EQ(11, stat.total_quota_calls);
-  EXPECT_EQ(11, stat.total_remote_quota_calls);
-  EXPECT_EQ(11, stat.total_blocking_remote_quota_calls);
+  EXPECT_EQ(stat.total_check_calls, 11);
+  EXPECT_EQ(stat.total_remote_check_calls, 11);
+  EXPECT_EQ(stat.total_blocking_remote_check_calls, 11);
+  EXPECT_EQ(stat.total_quota_calls, 11);
+  EXPECT_EQ(stat.total_remote_quota_calls, 11);
+  EXPECT_EQ(stat.total_blocking_remote_quota_calls, 11);
 }
 
 TEST_F(MixerClientImplTest, TestNoQuotaCache) {
@@ -220,12 +220,12 @@ TEST_F(MixerClientImplTest, TestNoQuotaCache) {
   Statistics stat;
   client_->GetStatistics(&stat);
   // Because there is no quota cache, we make remote blocking call every time.
-  EXPECT_EQ(11, stat.total_check_calls);
-  EXPECT_EQ(11, stat.total_remote_check_calls);
-  EXPECT_EQ(11, stat.total_blocking_remote_check_calls);
-  EXPECT_EQ(11, stat.total_quota_calls);
-  EXPECT_EQ(11, stat.total_remote_quota_calls);
-  EXPECT_EQ(11, stat.total_blocking_remote_quota_calls);
+  EXPECT_EQ(stat.total_check_calls, 11);
+  EXPECT_EQ(stat.total_remote_check_calls, 11);
+  EXPECT_EQ(stat.total_blocking_remote_check_calls, 11);
+  EXPECT_EQ(stat.total_quota_calls, 11);
+  EXPECT_EQ(stat.total_remote_quota_calls, 11);
+  EXPECT_EQ(stat.total_blocking_remote_quota_calls, 11);
 }
 
 TEST_F(MixerClientImplTest, TestSuccessCheckAndQuota) {
@@ -260,12 +260,12 @@ TEST_F(MixerClientImplTest, TestSuccessCheckAndQuota) {
   client_->GetStatistics(&stat);
   // Less than 4 remote calls are made for prefetching, and they are
   // non-blocking remote calls.
-  EXPECT_EQ(11, stat.total_check_calls);
-  EXPECT_GE(3, stat.total_remote_check_calls);
-  EXPECT_EQ(1, stat.total_blocking_remote_check_calls);
-  EXPECT_EQ(11, stat.total_quota_calls);
-  EXPECT_GE(3, stat.total_remote_quota_calls);
-  EXPECT_EQ(1, stat.total_blocking_remote_quota_calls);
+  EXPECT_EQ(stat.total_check_calls, 11);
+  EXPECT_LE(stat.total_remote_check_calls, 3);
+  EXPECT_EQ(stat.total_blocking_remote_check_calls, 1);
+  EXPECT_EQ(stat.total_quota_calls, 11);
+  EXPECT_LE(stat.total_remote_quota_calls, 3);
+  EXPECT_EQ(stat.total_blocking_remote_quota_calls, 1);
 }
 
 TEST_F(MixerClientImplTest, TestFailedCheckAndQuota) {
@@ -298,12 +298,12 @@ TEST_F(MixerClientImplTest, TestFailedCheckAndQuota) {
   client_->GetStatistics(&stat);
   // The first call is a remote blocking call, which returns failed precondition
   // in check response. Following calls only make check cache calls and return.
-  EXPECT_EQ(11, stat.total_check_calls);
-  EXPECT_EQ(1, stat.total_remote_check_calls);
-  EXPECT_EQ(1, stat.total_blocking_remote_check_calls);
-  EXPECT_EQ(1, stat.total_quota_calls);
-  EXPECT_EQ(1, stat.total_remote_quota_calls);
-  EXPECT_EQ(1, stat.total_blocking_remote_quota_calls);
+  EXPECT_EQ(stat.total_check_calls, 11);
+  EXPECT_EQ(stat.total_remote_check_calls, 1);
+  EXPECT_EQ(stat.total_blocking_remote_check_calls, 1);
+  EXPECT_EQ(stat.total_quota_calls, 1);
+  EXPECT_EQ(stat.total_remote_quota_calls, 1);
+  EXPECT_EQ(stat.total_blocking_remote_quota_calls, 1);
 }
 
 }  // namespace
