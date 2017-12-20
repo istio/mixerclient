@@ -39,9 +39,6 @@ class RequestHandlerImpl : public RequestHandler {
   // Make a Report call.
   void Report(ReportData* report_data) override;
 
-  // Get statistics.
-  void GetStatistics(::istio::mixer_client::Statistics* stat) const override;
-
  private:
   // The request context object.
   RequestContext request_context_;

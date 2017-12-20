@@ -45,9 +45,6 @@ class RequestHandler {
   // * extract more report attributes
   // * make a Report call.
   virtual void Report(ReportData* report_data) = 0;
-
-  // Get statistics.
-  virtual void GetStatistics(::istio::mixer_client::Statistics* stat) const = 0;
 };
 
 }  // namespace http
