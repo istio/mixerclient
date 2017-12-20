@@ -19,6 +19,7 @@
 using ::google::protobuf::util::Status;
 using ::istio::mixer_client::CancelFunc;
 using ::istio::mixer_client::DoneFunc;
+using ::istio::mixer_client::Statistics;
 using ::istio::quota::Requirement;
 
 namespace istio {
@@ -57,6 +58,10 @@ void RequestHandlerImpl::Report(ReportData* report_data) {
   builder.ExtractReportAttributes(report_data);
 
   client_context_->SendReport(request_context_);
+}
+
+void RequestHandlerImpl::GetStatistics(Statistics* stat) const {
+  client_context_->GetStatistics(stat);
 }
 
 }  // namespace tcp
