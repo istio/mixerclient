@@ -33,7 +33,7 @@ class AttributesBuilder {
   void ExtractForwardedAttributes(CheckData* check_data);
   // Forward attributes to upstream proxy.
   static void ForwardAttributes(
-      const ::istio::mixer::v1::Attributes& attributes, CheckData* check_data);
+      const ::istio::mixer::v1::Attributes& attributes, HeaderUpdate* header_update);
 
   // Extract attributes for Check call.
   void ExtractCheckAttributes(CheckData* check_data);
