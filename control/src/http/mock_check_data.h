@@ -49,7 +49,7 @@ class MockHeaderUpdate : public HeaderUpdate {
   MOCK_METHOD0(RemoveIstioAttributes, void());
   MOCK_METHOD1(AddIstioAttributes, void(const std::string &data));
 };
- 
+
 }  // namespace http
 }  // namespace mixer_control
 }  // namespace istio

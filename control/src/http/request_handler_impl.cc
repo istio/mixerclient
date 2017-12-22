@@ -42,13 +42,13 @@ void RequestHandlerImpl::ExtractRequestAttributes(CheckData* check_data) {
     service_context_->AddApiAttributes(check_data, &request_context_);
   }
 }
-  
+
 CancelFunc RequestHandlerImpl::Check(CheckData* check_data,
-				     HeaderUpdate* header_update,
+                                     HeaderUpdate* header_update,
                                      TransportCheckFunc transport,
                                      DoneFunc on_done) {
   ExtractRequestAttributes(check_data);
-  
+
   if (service_context_->client_context()->config().has_forward_attributes()) {
     AttributesBuilder::ForwardAttributes(
         service_context_->client_context()->config().forward_attributes(),

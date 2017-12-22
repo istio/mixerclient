@@ -39,7 +39,7 @@ class RequestHandler {
       CheckData* check_data, HeaderUpdate* header_update,
       ::istio::mixer_client::TransportCheckFunc transport,
       ::istio::mixer_client::DoneFunc on_done) = 0;
-  
+
   // Make a Report call. It will:
   // * check service config to see if Report is required
   // * extract more report attributes

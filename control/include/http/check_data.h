@@ -78,18 +78,18 @@ class CheckData {
       std::map<std::string, std::string> *payload) const = 0;
 };
 
-// An interfact to update request headers
+// An interfact to update request HTTP headers with Istio attributes.
 class HeaderUpdate {
  public:
-  virtual ~UpdateRequestHeader() {}
+  virtual ~HeaderUpdate() {}
 
   // Remove "x-istio-attributes" HTTP header.
-  virtual bool RemoveIstioAttributes() = 0;
+  virtual void RemoveIstioAttributes() = 0;
 
   // Base64 encode data, and add it as "x-istio-attributes" HTTP header.
   virtual void AddIstioAttributes(const std::string &data) = 0;
 };
- 
+
 }  // namespace http
 }  // namespace mixer_control
 }  // namespace istio
