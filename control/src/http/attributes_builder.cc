@@ -143,7 +143,7 @@ void AttributesBuilder::ExtractReportAttributes(ReportData *report_data) {
   if (!request_->check_status.ok()) {
     builder.AddInt64(
         AttributeName::kResponseCode,
-	utils::StatusHttpCode(request_->check_status.error_code()));
+        utils::StatusHttpCode(request_->check_status.error_code()));
     builder.AddInt64(AttributeName::kCheckErrorCode,
                      request_->check_status.error_code());
     builder.AddString(AttributeName::kCheckErrorMessage,
