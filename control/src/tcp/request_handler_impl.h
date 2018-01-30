@@ -19,6 +19,7 @@
 #include "client_context.h"
 #include "control/include/tcp/request_handler.h"
 #include "control/src/request_context.h"
+#include "include/timer.h"
 
 namespace istio {
 namespace mixer_control {
@@ -34,14 +35,34 @@ class RequestHandlerImpl : public RequestHandler {
       CheckData* check_data, ::istio::mixer_client::DoneFunc on_done) override;
 
   // Make a Report call.
+  // TODO(JimmyCYJ): Let TCP filter use
+  // void Report(ReportData* report_data, bool is_final_report), and deprecate
+  // this method.
   void Report(ReportData* report_data) override;
 
+  // Make a Report call. If is_final_report is true, then report all attributes,
+  // otherwise, report delta attributes.
+  void Report(ReportData* report_data, bool is_final_report) override;
+
+  // Start a timer to make periodical report calls.
+  bool StartReportTimer(ReportData* report_data) override;
+
  private:
+  // This function is invoked when timer event fires. It sends periodical delta
+  // reports.
+  void OnTimer();
+
   // The request context object.
   RequestContext request_context_;
 
   // The client context object.
   std::shared_ptr<ClientContext> client_context_;
+
+  // Data object that needs to be reported periodically.
+  ReportData* report_data_;
+
+  // Timer that periodically sends reports.
+  std::unique_ptr<::istio::mixer_client::Timer> timer_;
 };
 
 }  // namespace tcp
