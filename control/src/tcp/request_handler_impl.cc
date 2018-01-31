@@ -27,7 +27,6 @@ namespace tcp {
 RequestHandlerImpl::RequestHandlerImpl(
     std::shared_ptr<ClientContext> client_context)
     : client_context_(client_context),
-      report_attributes_builder_(&request_context_),
       last_report_info_{0ULL, 0ULL, std::chrono::nanoseconds::zero()} {}
 
 CancelFunc RequestHandlerImpl::Check(CheckData* check_data, DoneFunc on_done) {

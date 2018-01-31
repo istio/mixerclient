@@ -51,9 +51,6 @@ class RequestHandlerImpl : public RequestHandler {
   // The client context object.
   std::shared_ptr<ClientContext> client_context_;
 
-  // Builds report attributes.
-  AttributesBuilder report_attributes_builder_;
-
   // Records reported information in last Report() call. This is needed for
   // calculating delta information which will be sent in periodical report.
   // Delta information includes incremented sent bytes and received bytes

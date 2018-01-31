@@ -68,6 +68,9 @@ void AttributesBuilder::ExtractReportAttributes(
                      info.received_bytes - last_report_info->received_bytes);
     builder.AddInt64(AttributeName::kConnectionSendBytes,
                      info.send_bytes - last_report_info->send_bytes);
+    builder.AddInt64(AttributeName::kConnectionReceviedTotalBytes,
+                     info.received_bytes);
+    builder.AddInt64(AttributeName::kConnectionSendTotalBytes, info.send_bytes);
     last_report_info->received_bytes = info.received_bytes;
     last_report_info->send_bytes = info.send_bytes;
   }

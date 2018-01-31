@@ -148,6 +148,18 @@ attributes {
   }
 }
 attributes {
+  key: "connection.received.bytes_total"
+  value {
+    int64_value: 100
+  }
+}
+attributes {
+  key: "connection.sent.bytes_total"
+  value {
+    int64_value: 200
+  }
+}
+attributes {
   key: "context.time"
   value {
     timestamp_value {
@@ -179,6 +191,18 @@ attributes {
   key: "connection.sent.bytes"
   value {
     int64_value: 204
+  }
+}
+attributes {
+  key: "connection.received.bytes_total"
+  value {
+    int64_value: 201
+  }
+}
+attributes {
+  key: "connection.sent.bytes_total"
+  value {
+    int64_value: 404
   }
 }
 attributes {
