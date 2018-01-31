@@ -37,6 +37,9 @@ class RequestHandler {
 
   // Make report call.
   // This can be called multiple times for long connection.
+  // TODO(JimmyCYJ): Let TCP filter use
+  // void Report(ReportData* report_data, bool is_final_report), and deprecate
+  // this method.
   virtual void Report(ReportData* report_data) = 0;
 
   // Make report call.

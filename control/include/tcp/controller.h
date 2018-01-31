@@ -54,10 +54,6 @@ class Controller {
 
   // Get statistics.
   virtual void GetStatistics(::istio::mixer_client::Statistics* stat) const = 0;
-
-  virtual const ::istio::mixer_client::Environment& environment() const = 0;
-
-  virtual std::chrono::milliseconds report_interval_ms() const = 0;
 };
 
 }  // namespace tcp

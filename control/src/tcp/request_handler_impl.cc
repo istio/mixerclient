@@ -27,7 +27,8 @@ namespace tcp {
 RequestHandlerImpl::RequestHandlerImpl(
     std::shared_ptr<ClientContext> client_context)
     : client_context_(client_context),
-      report_attributes_builder_(&request_context_) {}
+      report_attributes_builder_(&request_context_),
+      last_report_info_{0ULL, 0ULL, std::chrono::nanoseconds::zero()} {}
 
 CancelFunc RequestHandlerImpl::Check(CheckData* check_data, DoneFunc on_done) {
   if (client_context_->enable_mixer_check() ||
@@ -58,11 +59,9 @@ void RequestHandlerImpl::Report(ReportData* report_data, bool is_final_report) {
     return;
   }
 
-  // Extracts attributes for report. If an attribute is already extracted by
-  // previous calls to Report, its value will be overwritten by the newest
-  // value.
-  report_attributes_builder_.ExtractReportAttributes(report_data,
-                                                     is_final_report);
+  AttributesBuilder builder(&request_context_);
+  builder.ExtractReportAttributes(report_data, is_final_report,
+                                  &last_report_info_);
 
   client_context_->SendReport(request_context_);
 }

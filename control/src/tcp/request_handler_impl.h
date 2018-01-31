@@ -53,6 +53,12 @@ class RequestHandlerImpl : public RequestHandler {
 
   // Builds report attributes.
   AttributesBuilder report_attributes_builder_;
+
+  // Records reported information in last Report() call. This is needed for
+  // calculating delta information which will be sent in periodical report.
+  // Delta information includes incremented sent bytes and received bytes
+  // between last report and this report.
+  ReportData::ReportInfo last_report_info_;
 };
 
 }  // namespace tcp

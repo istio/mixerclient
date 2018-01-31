@@ -41,22 +41,20 @@ void AttributesBuilder::ExtractCheckAttributes(CheckData* check_data) {
   builder.AddString(AttributeName::kContextProtocol, "tcp");
 }
 
-void AttributesBuilder::ExtractReportAttributes(ReportData* report_data,
-                                                bool is_final_report) {
+void AttributesBuilder::ExtractReportAttributes(
+    ReportData* report_data, bool is_final_report,
+    ReportData::ReportInfo* last_report_info) {
   ::istio::mixer_client::AttributesBuilder builder(&request_->attributes);
 
   ReportData::ReportInfo info;
   report_data->GetReportInfo(&info);
   if (is_final_report) {
-    // TODO(JimmyCYJ): After Envoy TCP filter switches to use
-    // Report(ReportData* report_data, bool is_final_report) call, do not
-    // report "connection.received.bytes" and "connection.sent.bytes" in final
-    // report.
     builder.AddInt64(AttributeName::kConnectionReceviedBytes,
-                     info.received_bytes);
+                     info.received_bytes - last_report_info->received_bytes);
     builder.AddInt64(AttributeName::kConnectionReceviedTotalBytes,
                      info.received_bytes);
-    builder.AddInt64(AttributeName::kConnectionSendBytes, info.send_bytes);
+    builder.AddInt64(AttributeName::kConnectionSendBytes,
+                     info.send_bytes - last_report_info->send_bytes);
     builder.AddInt64(AttributeName::kConnectionSendTotalBytes, info.send_bytes);
     builder.AddDuration(AttributeName::kConnectionDuration, info.duration);
     if (!request_->check_status.ok()) {
@@ -67,11 +65,11 @@ void AttributesBuilder::ExtractReportAttributes(ReportData* report_data,
     }
   } else {
     builder.AddInt64(AttributeName::kConnectionReceviedBytes,
-                     info.received_bytes - last_report_info_.received_bytes);
+                     info.received_bytes - last_report_info->received_bytes);
     builder.AddInt64(AttributeName::kConnectionSendBytes,
-                     info.send_bytes - last_report_info_.send_bytes);
-    last_report_info_.received_bytes = info.received_bytes;
-    last_report_info_.send_bytes = info.send_bytes;
+                     info.send_bytes - last_report_info->send_bytes);
+    last_report_info->received_bytes = info.received_bytes;
+    last_report_info->send_bytes = info.send_bytes;
   }
 
   std::string dest_ip;

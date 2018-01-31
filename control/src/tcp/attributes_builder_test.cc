@@ -92,7 +92,7 @@ attributes {
 attributes {
   key: "connection.received.bytes"
   value {
-    int64_value: 345
+    int64_value: 144
   }
 }
 attributes {
@@ -104,7 +104,7 @@ attributes {
 attributes {
   key: "connection.sent.bytes"
   value {
-    int64_value: 678
+    int64_value: 274
   }
 }
 attributes {
@@ -272,8 +272,11 @@ TEST(AttributesBuilderTest, TestReportAttributes) {
       ::google::protobuf::util::error::INVALID_ARGUMENT, "Invalid argument");
   AttributesBuilder builder(&request);
 
+  ReportData::ReportInfo last_report_info{0ULL, 0ULL,
+                                          std::chrono::nanoseconds::zero()};
   // Verify delta one report
-  builder.ExtractReportAttributes(&mock_data, /* is_final_report */ false);
+  builder.ExtractReportAttributes(&mock_data, /* is_final_report */ false,
+                                  &last_report_info);
   ClearContextTime(&request);
 
   std::string out_str;
@@ -285,9 +288,12 @@ TEST(AttributesBuilderTest, TestReportAttributes) {
                                           &expected_delta_attributes));
   EXPECT_TRUE(MessageDifferencer::Equals(request.attributes,
                                          expected_delta_attributes));
+  EXPECT_EQ(100, last_report_info.received_bytes);
+  EXPECT_EQ(200, last_report_info.send_bytes);
 
   // Verify delta two report
-  builder.ExtractReportAttributes(&mock_data, /* is_final_report */ false);
+  builder.ExtractReportAttributes(&mock_data, /* is_final_report */ false,
+                                  &last_report_info);
   ClearContextTime(&request);
 
   out_str.clear();
@@ -299,9 +305,12 @@ TEST(AttributesBuilderTest, TestReportAttributes) {
                                           &expected_delta_attributes));
   EXPECT_TRUE(MessageDifferencer::Equals(request.attributes,
                                          expected_delta_attributes));
+  EXPECT_EQ(201, last_report_info.received_bytes);
+  EXPECT_EQ(404, last_report_info.send_bytes);
 
   // Verify final report
-  builder.ExtractReportAttributes(&mock_data, /* is_final_report */ true);
+  builder.ExtractReportAttributes(&mock_data, /* is_final_report */ true,
+                                  &last_report_info);
   ClearContextTime(&request);
 
   out_str.clear();

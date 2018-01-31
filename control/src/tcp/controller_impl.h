@@ -31,7 +31,7 @@ class ControllerImpl : public Controller {
   ControllerImpl(const Controller::Options& data);
   // A constructor for unit-test to pass in a mock client_context
   ControllerImpl(std::shared_ptr<ClientContext> client_context)
-      : client_context_(client_context), env_{} {}
+      : client_context_(client_context) {}
 
   // Creates a TCP request handler
   std::unique_ptr<RequestHandler> CreateRequestHandler() override;
@@ -39,22 +39,9 @@ class ControllerImpl : public Controller {
   // Get statistics.
   void GetStatistics(::istio::mixer_client::Statistics* stat) const override;
 
-  const ::istio::mixer_client::Environment& environment() const override {
-    return env_;
-  }
-
-  std::chrono::milliseconds report_interval_ms() const override {
-    return report_interval_ms_;
-  }
-
  private:
   // The client context object to hold client config and client cache.
   std::shared_ptr<ClientContext> client_context_;
-
-  const ::istio::mixer_client::Environment& env_;
-
-  // Time interval in milliseconds for sending periodical delta reports.
-  std::chrono::milliseconds report_interval_ms_;
 };
 
 }  // namespace tcp

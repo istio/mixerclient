@@ -27,24 +27,17 @@ namespace tcp {
 // The builder class to add TCP attributes.
 class AttributesBuilder {
  public:
-  AttributesBuilder(RequestContext* request)
-      : request_(request),
-        last_report_info_{0ULL, 0ULL, std::chrono::nanoseconds::zero()} {}
+  AttributesBuilder(RequestContext* request) : request_(request) {}
 
   // Extract attributes for Check.
   void ExtractCheckAttributes(CheckData* check_data);
   // Extract attributes for Report.
-  void ExtractReportAttributes(ReportData* report_data, bool is_final_report);
+  void ExtractReportAttributes(ReportData* report_data, bool is_final_report,
+                               ReportData::ReportInfo* last_report_info);
 
  private:
   // The request context object.
   RequestContext* request_;
-
-  // Records reported information in last Report() call. This is needed for
-  // calculating delta information which will be sent in periodical report.
-  // Delta information includes incremented sent bytes and received bytes
-  // between last report and this report.
-  ReportData::ReportInfo last_report_info_;
 };
 
 }  // namespace tcp
