@@ -43,10 +43,6 @@ class RequestHandler {
   // If is_final_report is true, report all attributes. Otherwise, report delta
   // attributes.
   virtual void Report(ReportData* report_data, bool is_final_report) = 0;
-
-  // Start a timer to make periodical report calls. Returns true if timer
-  // starts successfully, and false otherwise.
-  virtual bool StartReportTimer(ReportData* report_data) = 0;
 };
 
 }  // namespace tcp

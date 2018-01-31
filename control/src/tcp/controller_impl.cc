@@ -22,9 +22,26 @@ using ::istio::mixer_client::Statistics;
 namespace istio {
 namespace mixer_control {
 namespace tcp {
+namespace {
 
-ControllerImpl::ControllerImpl(const Options& data) {
+// The time interval for periodical report.
+const int kDefaultReportIntervalMs = 10000;
+
+}  // namespace
+
+ControllerImpl::ControllerImpl(const Options& data) : env_(data.env) {
   client_context_.reset(new ClientContext(data));
+
+  if (data.config.report_interval().seconds() < 0 ||
+      data.config.report_interval().nanos() < 0 ||
+      (data.config.report_interval().seconds() == 0 &&
+       data.config.report_interval().nanos() == 0)) {
+    report_interval_ms_ = std::chrono::milliseconds(kDefaultReportIntervalMs);
+  } else {
+    report_interval_ms_ = std::chrono::milliseconds(
+        data.config.report_interval().seconds() * 1000 +
+        data.config.report_interval().nanos() / 1000000);
+  }
 }
 
 std::unique_ptr<RequestHandler> ControllerImpl::CreateRequestHandler() {
