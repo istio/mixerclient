@@ -16,7 +16,6 @@
 #ifndef MIXERCONTROL_TCP_REQUEST_HANDLER_IMPL_H
 #define MIXERCONTROL_TCP_REQUEST_HANDLER_IMPL_H
 
-#include "attributes_builder.h"
 #include "client_context.h"
 #include "control/include/tcp/request_handler.h"
 #include "control/src/request_context.h"

@@ -14,6 +14,7 @@
  */
 
 #include "request_handler_impl.h"
+#include "attributes_builder.h"
 
 using ::google::protobuf::util::Status;
 using ::istio::mixer_client::CancelFunc;

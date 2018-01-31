@@ -48,14 +48,15 @@ void AttributesBuilder::ExtractReportAttributes(
 
   ReportData::ReportInfo info;
   report_data->GetReportInfo(&info);
+  builder.AddInt64(AttributeName::kConnectionReceviedBytes,
+                   info.received_bytes - last_report_info->received_bytes);
+  builder.AddInt64(AttributeName::kConnectionReceviedTotalBytes,
+                   info.received_bytes);
+  builder.AddInt64(AttributeName::kConnectionSendBytes,
+                   info.send_bytes - last_report_info->send_bytes);
+  builder.AddInt64(AttributeName::kConnectionSendTotalBytes, info.send_bytes);
+
   if (is_final_report) {
-    builder.AddInt64(AttributeName::kConnectionReceviedBytes,
-                     info.received_bytes - last_report_info->received_bytes);
-    builder.AddInt64(AttributeName::kConnectionReceviedTotalBytes,
-                     info.received_bytes);
-    builder.AddInt64(AttributeName::kConnectionSendBytes,
-                     info.send_bytes - last_report_info->send_bytes);
-    builder.AddInt64(AttributeName::kConnectionSendTotalBytes, info.send_bytes);
     builder.AddDuration(AttributeName::kConnectionDuration, info.duration);
     if (!request_->check_status.ok()) {
       builder.AddInt64(AttributeName::kCheckErrorCode,
@@ -64,13 +65,6 @@ void AttributesBuilder::ExtractReportAttributes(
                         request_->check_status.ToString());
     }
   } else {
-    builder.AddInt64(AttributeName::kConnectionReceviedBytes,
-                     info.received_bytes - last_report_info->received_bytes);
-    builder.AddInt64(AttributeName::kConnectionSendBytes,
-                     info.send_bytes - last_report_info->send_bytes);
-    builder.AddInt64(AttributeName::kConnectionReceviedTotalBytes,
-                     info.received_bytes);
-    builder.AddInt64(AttributeName::kConnectionSendTotalBytes, info.send_bytes);
     last_report_info->received_bytes = info.received_bytes;
     last_report_info->send_bytes = info.send_bytes;
   }
