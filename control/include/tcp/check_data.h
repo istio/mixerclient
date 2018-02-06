@@ -35,7 +35,7 @@ class CheckData {
   virtual bool GetSourceUser(std::string* user) const = 0;
 
   // Returns true if connection is mutual TLS enabled.
-  virtual bool IsMutualTlsEnabledConnection() const = 0;
+  virtual bool IsMutualTLS() const = 0;
 };
 
 }  // namespace tcp

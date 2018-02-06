@@ -109,8 +109,7 @@ void AttributesBuilder::ExtractCheckAttributes(CheckData *check_data) {
     builder.AddBytes(AttributeName::kSourceIp, source_ip);
     builder.AddInt64(AttributeName::kSourcePort, source_port);
   }
-  builder.AddBool(AttributeName::kConnectionMtls,
-                  check_data->IsMutualTlsEnabledConnection());
+  builder.AddBool(AttributeName::kConnectionMtls, check_data->IsMutualTLS());
 
   std::string source_user;
   if (check_data->GetSourceUser(&source_user)) {

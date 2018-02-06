@@ -43,7 +43,7 @@ class CheckData {
   virtual std::map<std::string, std::string> GetRequestHeaders() const = 0;
 
   // Returns true if connection is mutual TLS enabled.
-  virtual bool IsMutualTlsEnabledConnection() const = 0;
+  virtual bool IsMutualTLS() const = 0;
 
   // These headers are extracted into top level attributes.
   // This is for standard HTTP headers.  It supports both HTTP/1.1 and HTTP2

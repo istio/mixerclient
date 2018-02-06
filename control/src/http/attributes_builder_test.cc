@@ -298,8 +298,9 @@ TEST(AttributesBuilderTest, TestCheckAttributes) {
         *user = "test_user";
         return true;
       }));
-  EXPECT_CALL(mock_data, IsMutualTlsEnabledConnection())
-      .WillOnce(Invoke([]() -> bool { return true; }));
+  EXPECT_CALL(mock_data, IsMutualTLS()).WillOnce(Invoke([]() -> bool {
+    return true;
+  }));
   EXPECT_CALL(mock_data, GetRequestHeaders())
       .WillOnce(Invoke([]() -> std::map<std::string, std::string> {
         std::map<std::string, std::string> map;
